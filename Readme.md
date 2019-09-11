@@ -1,7 +1,7 @@
 # Личный проект «Кексобукинг» [![Build status][travis-image]][travis-url]
 
 * Студент: [Виктор Каргалов](https://up.htmlacademy.ru/javascript/18/user/566813).
-* Наставник: `Неизвестно`.
+* Наставник: [Александр Смирнов](https://htmlacademy.ru/profile/id516117).
 
 ---
 
