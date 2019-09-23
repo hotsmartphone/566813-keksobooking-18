@@ -5,7 +5,7 @@ var checkinTimes = ['12:00', '13:00', '14:00'];
 var checkoutTimes = ['12:00', '13:00', '14:00'];
 var features = ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'];
 var photos = ['http://o0.github.io/assets/images/tokyo/hotel1.jpg', 'http://o0.github.io/assets/images/tokyo/hotel2.jpg', 'http://o0.github.io/assets/images/tokyo/hotel3.jpg'];
-var NUMBER_OF_ADV = 8;
+var NUMBER_OF_ADVS = 8;
 var PIN_WIDTH = 50;
 var PIN_HEIGHT = 70;
 
@@ -28,7 +28,7 @@ function arrSort(arr) {
   return c;
 };
 
-var getRandomAdv = function (numberOfAdv) {
+var getRandomAdvs = function (numberOfAdv) {
   var advs = [];
   for(var i = 0; i < numberOfAdv; i++) {
 advs[i] =   {
@@ -61,21 +61,33 @@ advs[i] =   {
 var mapActive = document.querySelector('.map');
 mapActive.classList.remove('map--faded');
 
-//Генерируем и вставляем пины
-var renderPin = function (advs) {
+//Генерируем пин
+var renderPin = function (adv) {
   var pinTemplate = document.querySelector('#pin').content.querySelector('.map__pin');
-  var pinList = document.createDocumentFragment();
+  var pinElement = pinTemplate.cloneNode(true);
 
-  for (var i = 0; i < advs.length; i++) {
-    var pinElement = pinTemplate.cloneNode(true);
-    pinElement.style.left = (advs[i].location.x - PIN_WIDTH / 2) + 'px';
-    pinElement.style.top = (advs[i].location.y - PIN_HEIGHT) + 'px';
-    pinElement.querySelector('img').src = advs[i].author.avatar;
-    pinElement.querySelector('img').alt = advs[i].offer.title;
-    pinList.appendChild(pinElement);
+  console.log(adv);
 
-  }
-  return document.querySelector('.map__pins').appendChild(pinList);
+  pinElement.style.left = adv.location.x - (PIN_WIDTH / 2) + 'px';
+  console.log(pinElement.style.left);
+  pinElement.style.top = adv.location.y - PIN_HEIGHT + 'px';
+    console.log(pinElement.style.top);
+  pinElement.querySelector('img').src = adv.author.avatar;
+  pinElement.querySelector('img').alt = adv.offer.title;
+
+  return pinElement;
 };
 
-renderPin(getRandomAdv(NUMBER_OF_ADV));
+//Отрисовываем пины
+var drawPins = function(advsList) {
+var pinList = document.querySelector('.map__pins');
+var fragment = document.createDocumentFragment();
+
+for (var i = 0; i < advsList.length; i++) {
+  fragment.appendChild(renderPin(advsList[i]));
+}
+
+return pinList.appendChild(fragment);
+};
+
+renderPin(drawPins(getRandomAdvs(NUMBER_OF_ADVS)));
