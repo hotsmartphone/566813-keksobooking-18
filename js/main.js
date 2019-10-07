@@ -16,6 +16,7 @@ var PIN_WIDTH = 50;
 var PIN_HEIGHT = 70;
 
 var ENTER_KEYCODE = 13;
+var ESC_KEYCODE = 27;
 
 // Функция рандомного числа, в том числе в диапазоне
 function getRandomNumbers(fromNumber, toNumber) { // Если передать один аргумент - отдаст число от 0 до x, если два - вернет число в указанном диапазоне
@@ -72,7 +73,7 @@ var getRandomAdvs = function (numberOfAdv) {
 };
 
 // Генерируем пин
-var renderPin = function (adv) {
+var renderPin = function (adv, indexNumber) {
   var pinTemplate = document.querySelector('#pin').content.querySelector('.map__pin');
   var pinElement = pinTemplate.cloneNode(true);
 
@@ -80,20 +81,21 @@ var renderPin = function (adv) {
   pinElement.style.top = adv.location.y - PIN_HEIGHT + 'px';
   pinElement.querySelector('img').src = adv.author.avatar;
   pinElement.querySelector('img').alt = adv.offer.title;
+  pinElement.id = indexNumber;
 
   return pinElement;
 };
 
 // Отрисовываем пины
-var pinList = document.querySelector('.map__pins');
+var mapPins = document.querySelector('.map__pins');
 
 var drawPins = function (advsList) {
   var fragment = document.createDocumentFragment();
 
   for (var i = 0; i < advsList.length; i++) {
-    fragment.appendChild(renderPin(advsList[i]));
+    fragment.appendChild(renderPin(advsList[i], i));
   }
-  return pinList.appendChild(fragment);
+  return mapPins.appendChild(fragment);
 };
 
 // Генерируем карточку
@@ -135,24 +137,23 @@ var renderCard = function (adv) {
 };
 
 // Отрисовываем карточки
-var drawCards = function (advsList) {
+var drawCards = function (adv) {
   var mapFilters = document.querySelector('.map__filters-container'); // Перед данным разделом добавляются карточки
   var fragment = document.createDocumentFragment();
 
-  for (var i = 0; i < advsList.length; i++) {
-    fragment.appendChild(renderCard(advsList[i]));
-  }
+  fragment.appendChild(renderCard(adv));
+
   return mapFilters.before(fragment);
 };
 
 // Делаем карту активной
 var mapActive = document.querySelector('.map');
 var mainPin = document.querySelector('.map__pin--main');
+var advForm = document.querySelector('.ad-form');
 
 // Функция переключения режима полей форм (активный/неактивный)
 function switchActiveForm(boolean) {
   var formInputsSelectors = document.querySelectorAll('.ad-form fieldset, .map__filters fieldset, .map__filters select');
-  var advForm = document.querySelector('.ad-form');
   if (boolean === true) {
     for (var i = 0; i < formInputsSelectors.length; i++) {
       formInputsSelectors[i].disabled = false;
@@ -167,11 +168,12 @@ function switchActiveForm(boolean) {
 
 switchActiveForm(false);
 
+var randomAdvs = getRandomAdvs(NUMBER_OF_ADVS);
+
 var mainPinClickHandler = function () {
   mapActive.classList.remove('map--faded');
   switchActiveForm(true);
-  drawPins(getRandomAdvs(NUMBER_OF_ADVS));
-  drawCards(getRandomAdvs(NUMBER_OF_ADVS));
+  drawPins(randomAdvs);
   getMainPinAddress(true);
   mainPin.removeEventListener('mousedown', mainPinClickHandler);
   mainPin.removeEventListener('keydown', mainPinEnterPressHandler);
@@ -194,9 +196,9 @@ var pinAddress = document.querySelector('#address');
 
 function getMainPinAddress(isActiveBoolean) {
   if (isActiveBoolean) {
-    pinAddress.value = (mainPin.getBoundingClientRect().left - pinList.getBoundingClientRect().left + MAIN_PIN_WIDTH / 2) + ', ' + (mainPin.getBoundingClientRect().top - pinList.getBoundingClientRect().top + MAIN_PIN_HEIGHT_POINT / 2);
+    pinAddress.setAttribute('value', ((mainPin.getBoundingClientRect().left - mapPins.getBoundingClientRect().left + MAIN_PIN_WIDTH / 2) + ', ' + (mainPin.getBoundingClientRect().top - mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT_POINT / 2)));
   } else {
-    pinAddress.value = (mainPin.getBoundingClientRect().left - pinList.getBoundingClientRect().left + MAIN_PIN_WIDTH / 2) + ', ' + (mainPin.getBoundingClientRect().top - pinList.getBoundingClientRect().top + MAIN_PIN_HEIGHT / 2);
+    pinAddress.setAttribute('value', ((mainPin.getBoundingClientRect().left - mapPins.getBoundingClientRect().left + MAIN_PIN_WIDTH / 2) + ', ' + (mainPin.getBoundingClientRect().top - mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT / 2)));
   }
 }
 
@@ -217,8 +219,11 @@ var capacityRoomOptions = document.querySelectorAll('#capacity option');
 // Функция, которая срабатывает при смене количества комнат. Ограничивает список мест до разрешенного для даннного количества комнат
 function matchRoomsToGuests(evt) {
   var targetValue = evt.target.value;
+  setPriceOption(targetValue);
+}
 
-  // Делаю неактивными все пункты количества мест
+// Делаю неактивными все пункты количества мест
+var setPriceOption = function (targetValue) {
   for (var i = 0; i < capacityRoomOptions.length; i++) {
     capacityRoomOptions[i].disabled = true;
   }
@@ -235,6 +240,133 @@ function matchRoomsToGuests(evt) {
       }
     }
   }
-}
+};
 
 roomNumber.addEventListener('change', matchRoomsToGuests);
+
+// Запускаем фнукцию установки разрешенного количества мест сразу при открытии страницы, чтобы пользователь случайно не отправил невалидные данные
+setPriceOption(roomNumber.querySelector('option:checked').value);
+
+
+// Открытие и закрытие карточек объявлений
+
+// Функция, которая определяет, на пине сработал клик или нет и запускает фнукцию открытия соответствующей карточки
+var pinClickHandler = function (evt) {
+  var target = evt.target;
+  while (target !== mapPins) {
+    if (target.className === 'map__pin' && target.id) {
+      testFunc(target);
+      return;
+    }
+    target = target.parentNode;
+  }
+};
+
+// Функция открытия карточки с обработчиками событий
+function testFunc(target) {
+  if (document.querySelector('.popup')) {
+    document.querySelector('.popup').remove();
+  }
+  drawCards(randomAdvs[target.id]);
+
+  var popup = document.querySelector('.popup');
+  var popupClose = document.querySelector('.popup__close');
+
+
+  var onPopupEscPress = function (evt) {
+    if (evt.keyCode === ESC_KEYCODE) {
+      closePopup();
+    }
+  };
+
+  var onPopupCloseEnterPress = function (evt) {
+    if (evt.keyCode === ENTER_KEYCODE) {
+      closePopup();
+    }
+  };
+  // Функция обработчика закрытия
+  var closePopup = function () {
+    popup.remove();
+    document.removeEventListener('keydown', onPopupEscPress);
+  };
+  // Обработчик событий на закрытие окна
+  popupClose.addEventListener('click', function () {
+    closePopup();
+  });
+  // Закрытие карточки по ENTER
+  popupClose.addEventListener('keydown', onPopupCloseEnterPress);
+  // Закрытие карточки по Esc
+  document.addEventListener('keydown', onPopupEscPress);
+}
+
+mapPins.addEventListener('click', pinClickHandler);
+
+// Продолажем валидировать
+// Добавляем адрес отправки формы
+advForm.action = 'https://js.dump.academy/keksobooking';
+
+// Валидация заголовка
+var titleAdv = document.querySelector('#title');
+titleAdv.setAttribute('minlength', 30);
+titleAdv.setAttribute('maxlength', 100);
+titleAdv.required = true;
+
+var setNewTitle = function (evt) {
+  titleAdv.setAttribute('value', evt.target.value);
+};
+titleAdv.addEventListener('input', setNewTitle);
+
+// Валидация цены
+var priceAdv = document.querySelector('#price');
+priceAdv.required = true;
+priceAdv.setAttribute('max', 1000000);
+
+// Валидация типа жилья - минимальная цена
+var housingTypeAdv = document.querySelector('#type');
+var priceForType = {
+  palace: 10000,
+  flat: 1000,
+  house: 5000,
+  bungalo: 0
+};
+
+// Функция в зависимости от типа дилья устанавливает минимальное значение цены и placeholder
+var matchTypePrice = function (evt) {
+  var targetValue = evt.target.value;
+  setMinPricePlaceholder(targetValue);
+};
+
+var setMinPricePlaceholder = function (typeHusingValue) {
+  for (var i = 0; i < Object.keys(priceForType).length; i++) {
+    if (Object.keys(priceForType)[i] === typeHusingValue) {
+      priceAdv.setAttribute('min', priceForType[Object.keys(priceForType)[i]]);
+      priceAdv.placeholder = priceForType[Object.keys(priceForType)[i]];
+    }
+  }
+};
+
+housingTypeAdv.addEventListener('change', matchTypePrice);
+
+// По умолчанию тип жилья "Квартира", для которого не установлено минимальное значение. Оно устанавливается только при смене типа жилья. Проставим минимальное значение при открытии страницы.
+var selectedHousingTypeValue = housingTypeAdv.querySelector('option:checked').value;
+setMinPricePlaceholder(selectedHousingTypeValue);
+
+// Валидация адреса
+pinAddress.required = true;
+pinAddress.setAttribute('readonly', true);
+
+// Валидация время заезда и выезда
+var checkin = document.querySelector('#timein');
+var checkout = document.querySelector('#timeout');
+
+var matchCheckinCheckout = function (evt) {
+  var target = evt.target;
+  if (target === checkin) {
+    checkout.value = target.value;
+  } else {
+    checkin.value = target.value;
+  }
+};
+
+checkin.addEventListener('change', matchCheckinCheckout);
+checkout.addEventListener('change', matchCheckinCheckout);
