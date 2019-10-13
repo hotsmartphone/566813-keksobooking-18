@@ -27,14 +27,14 @@
   // Вычисляем адресс главного пина
   var MAIN_PIN_WIDTH = 62;
   var MAIN_PIN_HEIGHT = 62;
-  var MAIN_PIN_HEIGHT_POINT = 84;
+  var MAIN_PIN_HEIGHT_POINT = 79;
   var pinAddress = document.querySelector('#address');
 
-  function getMainPinAddress(isActiveBoolean) {
+  var getMainPinAddress = function (isActiveBoolean) {
     if (isActiveBoolean) {
-      pinAddress.setAttribute('value', ((window.map.mainPin.getBoundingClientRect().left - window.map.mapPins.getBoundingClientRect().left + MAIN_PIN_WIDTH / 2) + ', ' + (window.map.mainPin.getBoundingClientRect().top - window.map.mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT_POINT / 2)));
+      pinAddress.setAttribute('value', (Math.round(mainPin.getBoundingClientRect().left - mapPins.getBoundingClientRect().left + MAIN_PIN_WIDTH / 2) + ', ' + Math.round(mainPin.getBoundingClientRect().top - mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT_POINT)));
     } else {
-      pinAddress.setAttribute('value', ((window.map.mainPin.getBoundingClientRect().left - window.map.mapPins.getBoundingClientRect().left + MAIN_PIN_WIDTH / 2) + ', ' + (window.map.mainPin.getBoundingClientRect().top - window.map.mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT / 2)));
+      pinAddress.setAttribute('value', (Math.round(mainPin.getBoundingClientRect().left - mapPins.getBoundingClientRect().left + MAIN_PIN_WIDTH / 2) + ', ' + Math.round(mainPin.getBoundingClientRect().top - mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT / 2)));
     }
   }
 
@@ -85,7 +85,7 @@
   // Функция, которая определяет, на пине сработал клик или нет и запускает фнукцию открытия соответствующей карточки
   var pinClickHandler = function (evt) {
     var target = evt.target;
-    while (target !== window.map.mapPins) {
+    while (target !== mapPins) {
       if (target.className === 'map__pin' && target.id) {
         testFunc(target);
         return;
@@ -142,5 +142,61 @@
     drawCards: drawCards,
     getMainPinAddress: getMainPinAddress
   };
+
+// Передвижение метки
+mainPin.addEventListener('mousedown', function (evt) {
+  evt.preventDefault();
+
+  var startCoords = {
+    x: evt.clientX,
+    y: evt.clientY
+  };
+
+var dragged = false;
+
+  var onMouseMove = function (moveEvt) {
+    moveEvt.preventDefault();
+
+    var shift = {
+      x: startCoords.x - moveEvt.clientX,
+      y: startCoords.y - moveEvt.clientY
+    };
+
+    startCoords = {
+      x: moveEvt.clientX,
+      y: moveEvt.clientY
+    };
+
+    mainPin.style.top = (mainPin.offsetTop - shift.y) + 'px';
+    mainPin.style.left = (mainPin.offsetLeft - shift.x) + 'px';
+
+    getMainPinAddress(true);
+  };
+
+  var onMouseUp = function (upEvt) {
+  upEvt.preventDefault();
+  getMainPinAddress(true);
+
+  document.removeEventListener('mousemove', onMouseMove);
+  document.removeEventListener('mouseup', onMouseUp);
+
+  if (dragged) {
+  var onClickPreventDefault = function (evt) {
+    evt.preventDefault();
+    dialogHandler.removeEventListener('click', onClickPreventDefault)
+  };
+  dialogHandler.addEventListener('click', onClickPreventDefault);
+}
+};
+
+document.addEventListener('mousemove', onMouseMove);
+document.addEventListener('mouseup', onMouseUp);
+});
+
+// ?????????????
+document.addEventListener('click', function (evt) {
+  console.log(evt.clientX, evt.clientY)
+});
+
 }
 )();
