@@ -25,8 +25,8 @@
   };
 
   // Вычисляем адресс главного пина
-  var MAIN_PIN_WIDTH = 62;
-  var MAIN_PIN_HEIGHT = 62;
+  var MAIN_PIN_WIDTH = 65;
+  var MAIN_PIN_HEIGHT = 65;
   var MAIN_PIN_HEIGHT_POINT = 79;
   var pinAddress = document.querySelector('#address');
 
@@ -180,8 +180,8 @@ var dragged = false;
 // console.log('startCoords.y ' + startCoords.y  );
 // console.log('moveEvt.clientX ' + moveEvt.clientX );
 // console.log('moveEvt.clientY ' +moveEvt.clientY );
-    // mainPin.style.top = (mainPin.offsetTop - shift.y) + 'px';
-    // mainPin.style.left = (mainPin.offsetLeft - shift.x) + 'px';
+    //mainPin.style.top = (mainPin.offsetTop - shift.y) + 'px';
+    //mainPin.style.left = (mainPin.offsetLeft - shift.x) + 'px';
 
 // function blockcoord () {
 //   var coordinates = getMainPinAddress(true);
@@ -197,15 +197,27 @@ var dragged = false;
 //
 //     setMainPinAddress(true);
 //   };
-var objminBoundX = e.parentNode.offsetLeft;
-var objminBoundY = e.parentNode.offsetTop;
 
-obj.maxBoundX = obj.minBoundX + e.parentNode.offsetWidth - e.offsetWidth;
-obj.maxBoundY = obj.minBoundY + e.parentNode.offsetHeight - e.offsetHeight;
+var MAX_HEIGHT_PIN_MOVE = 130 - MAIN_PIN_HEIGHT_POINT;
+var MIN_HEIGHT_PIN_MOVE = 630 - MAIN_PIN_HEIGHT_POINT;
+var MIN_WIDTH_PIN_MOVE = 0 - MAIN_PIN_WIDTH / 2;
+var MAX_WIDTH_PIN_MOVE = mapPins.offsetWidth - MAIN_PIN_WIDTH / 2;
 
 
-dragObj.element.style.left = Math.max(dragObj.minBoundX, Math.min(event.clientX - dragObj.posX, dragObj.maxBoundX)) + "px";
-dragObj.element.style.top = Math.max(dragObj.minBoundY, Math.min(event.clientY - dragObj.posY, dragObj.maxBoundY)) + "px";
+mainPin.style.left = Math.max(MIN_WIDTH, Math.min(mainPin.offsetLeft - shift.x, MAX_WIDTH)) + "px";
+mainPin.style.top = Math.max(MAX_HEIGHT, Math.min(mainPin.offsetTop - shift.y, MIN_HEIGHT)) + "px";
+
+
+};
+// var objminBoundX = e.parentNode.offsetLeft;
+// var objminBoundY = e.parentNode.offsetTop;
+//
+// obj.maxBoundX = obj.minBoundX + e.parentNode.offsetWidth - e.offsetWidth;
+// obj.maxBoundY = obj.minBoundY + e.parentNode.offsetHeight - e.offsetHeight;
+//
+//
+// dragObj.element.style.left = Math.max(dragObj.minBoundX, Math.min(event.clientX - dragObj.posX, dragObj.maxBoundX)) + "px";
+// dragObj.element.style.top = Math.max(dragObj.minBoundY, Math.min(event.clientY - dragObj.posY, dragObj.maxBoundY)) + "px";
 
 
 // ////////////////////////////////////////////////////////////////////
