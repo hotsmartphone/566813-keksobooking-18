@@ -34,18 +34,18 @@
     var mainPinAdress = {
       x: Math.round(mainPin.getBoundingClientRect().left - mapPins.getBoundingClientRect().left + MAIN_PIN_WIDTH / 2) // x всегда одинаковый
     };
-if (isActiveBoolean) {
-  mainPinAdress.y = Math.round(mainPin.getBoundingClientRect().top - mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT_POINT);
-} else {
-    mainPinAdress.y = Math.round(mainPin.getBoundingClientRect().top - mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT / 2);
-}
-return mainPinAdress;
-// ..console.log(mainPinAdress);
-};
+    if (isActiveBoolean) {
+      mainPinAdress.y = Math.round(mainPin.getBoundingClientRect().top - mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT_POINT);
+    } else {
+      mainPinAdress.y = Math.round(mainPin.getBoundingClientRect().top - mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT / 2);
+    }
+    return mainPinAdress;
+    // ..console.log(mainPinAdress);
+  };
 
   var setMainPinAddress = function (isActiveBoolean) {
     var coordinates = getMainPinAddress(isActiveBoolean);
-      pinAddress.setAttribute('value', coordinates.x + ', ' + coordinates.y);
+    pinAddress.setAttribute('value', coordinates.x + ', ' + coordinates.y);
   };
 
   // Делаем карту активной
@@ -153,60 +153,50 @@ return mainPinAdress;
     setMainPinAddress: setMainPinAddress
   };
 
-// Передвижение метки
-mainPin.addEventListener('mousedown', function (evt) {
-  evt.preventDefault();
-
-  var startCoords = {
-    x: evt.clientX,
-    y: evt.clientY
-  };
-
-var dragged = false;
-
-  var onMouseMove = function (moveEvt) {
-    moveEvt.preventDefault();
-
-    var shift = {
-      x: startCoords.x - moveEvt.clientX,
-      y: startCoords.y - moveEvt.clientY
-    };
-
-    startCoords = {
-      x: moveEvt.clientX,
-      y: moveEvt.clientY
-    };
-var MIN_HEIGHT_ADDRESS = 130;
-var MAX_HEIGHT_ADDRESS = 630;
-var MIN_HEIGHT_PIN_MOVE = MIN_HEIGHT_ADDRESS - MAIN_PIN_HEIGHT_POINT;
-var MAX_HEIGHT_PIN_MOVE = MAX_HEIGHT_ADDRESS - MAIN_PIN_HEIGHT_POINT;
-var MIN_WIDTH_PIN_MOVE = 0 - MAIN_PIN_WIDTH / 2;
-var MAX_WIDTH_PIN_MOVE = mapPins.offsetWidth - MAIN_PIN_WIDTH / 2;
-
-
-mainPin.style.left = Math.max(MIN_WIDTH_PIN_MOVE, Math.min(mainPin.offsetLeft - shift.x, MAX_WIDTH_PIN_MOVE)) + "px";
-mainPin.style.top = Math.max(MIN_HEIGHT_PIN_MOVE, Math.min(mainPin.offsetTop - shift.y, MAX_HEIGHT_PIN_MOVE)) + "px";
-
-setMainPinAddress(true);
-};
-  var onMouseUp = function (upEvt) {
-  upEvt.preventDefault();
-  setMainPinAddress(true);
-
-  document.removeEventListener('mousemove', onMouseMove);
-  document.removeEventListener('mouseup', onMouseUp);
-
-  if (dragged) {
-  var onClickPreventDefault = function (evt) {
+  // Передвижение метки
+  mainPin.addEventListener('mousedown', function (evt) {
     evt.preventDefault();
-    dialogHandler.removeEventListener('click', onClickPreventDefault)
-  };
-  dialogHandler.addEventListener('click', onClickPreventDefault);
-}
-};
 
-document.addEventListener('mousemove', onMouseMove);
-document.addEventListener('mouseup', onMouseUp);
-});
-}
-)();
+    var startCoords = {
+      x: evt.clientX,
+      y: evt.clientY
+    };
+
+    var onMouseMove = function (moveEvt) {
+      moveEvt.preventDefault();
+
+      var shift = {
+        x: startCoords.x - moveEvt.clientX,
+        y: startCoords.y - moveEvt.clientY
+      };
+
+      startCoords = {
+        x: moveEvt.clientX,
+        y: moveEvt.clientY
+      };
+      var MIN_HEIGHT_ADDRESS = 130;
+      var MAX_HEIGHT_ADDRESS = 630;
+      var MIN_HEIGHT_PIN_MOVE = MIN_HEIGHT_ADDRESS - MAIN_PIN_HEIGHT_POINT;
+      var MAX_HEIGHT_PIN_MOVE = MAX_HEIGHT_ADDRESS - MAIN_PIN_HEIGHT_POINT;
+      var MIN_WIDTH_PIN_MOVE = 0 - MAIN_PIN_WIDTH / 2;
+      var MAX_WIDTH_PIN_MOVE = mapPins.offsetWidth - MAIN_PIN_WIDTH / 2;
+
+
+      mainPin.style.left = Math.max(MIN_WIDTH_PIN_MOVE, Math.min(mainPin.offsetLeft - shift.x, MAX_WIDTH_PIN_MOVE)) + 'px';
+      mainPin.style.top = Math.max(MIN_HEIGHT_PIN_MOVE, Math.min(mainPin.offsetTop - shift.y, MAX_HEIGHT_PIN_MOVE)) + 'px';
+
+      setMainPinAddress(true);
+    };
+
+    var onMouseUp = function (upEvt) {
+      upEvt.preventDefault();
+      setMainPinAddress(true);
+
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+})();
