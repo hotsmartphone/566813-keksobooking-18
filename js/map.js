@@ -176,51 +176,19 @@ var dragged = false;
       x: moveEvt.clientX,
       y: moveEvt.clientY
     };
-// console.log('startCoords.x ' + startCoords.x );
-// console.log('startCoords.y ' + startCoords.y  );
-// console.log('moveEvt.clientX ' + moveEvt.clientX );
-// console.log('moveEvt.clientY ' +moveEvt.clientY );
-    //mainPin.style.top = (mainPin.offsetTop - shift.y) + 'px';
-    //mainPin.style.left = (mainPin.offsetLeft - shift.x) + 'px';
-
-// function blockcoord () {
-//   var coordinates = getMainPinAddress(true);
-//   if (coordinates.x <= 0) {
-//     mainPin.style.left  = (-MAIN_PIN_WIDTH / 2) + 'px';
-//     mainPin.style.top = (mainPin.offsetTop - shift.y) + 'px';
-//   } else {
-//     mainPin.style.top = (mainPin.offsetTop - shift.y) + 'px';
-//     mainPin.style.left = (mainPin.offsetLeft - shift.x) + 'px';
-//   }
-// };
-// blockcoord();
-//
-//     setMainPinAddress(true);
-//   };
-
-var MAX_HEIGHT_PIN_MOVE = 130 - MAIN_PIN_HEIGHT_POINT;
-var MIN_HEIGHT_PIN_MOVE = 630 - MAIN_PIN_HEIGHT_POINT;
+var MIN_HEIGHT_ADDRESS = 130;
+var MAX_HEIGHT_ADDRESS = 630;
+var MIN_HEIGHT_PIN_MOVE = MIN_HEIGHT_ADDRESS - MAIN_PIN_HEIGHT_POINT;
+var MAX_HEIGHT_PIN_MOVE = MAX_HEIGHT_ADDRESS - MAIN_PIN_HEIGHT_POINT;
 var MIN_WIDTH_PIN_MOVE = 0 - MAIN_PIN_WIDTH / 2;
 var MAX_WIDTH_PIN_MOVE = mapPins.offsetWidth - MAIN_PIN_WIDTH / 2;
 
 
-mainPin.style.left = Math.max(MIN_WIDTH, Math.min(mainPin.offsetLeft - shift.x, MAX_WIDTH)) + "px";
-mainPin.style.top = Math.max(MAX_HEIGHT, Math.min(mainPin.offsetTop - shift.y, MIN_HEIGHT)) + "px";
+mainPin.style.left = Math.max(MIN_WIDTH_PIN_MOVE, Math.min(mainPin.offsetLeft - shift.x, MAX_WIDTH_PIN_MOVE)) + "px";
+mainPin.style.top = Math.max(MIN_HEIGHT_PIN_MOVE, Math.min(mainPin.offsetTop - shift.y, MAX_HEIGHT_PIN_MOVE)) + "px";
 
-
+setMainPinAddress(true);
 };
-// var objminBoundX = e.parentNode.offsetLeft;
-// var objminBoundY = e.parentNode.offsetTop;
-//
-// obj.maxBoundX = obj.minBoundX + e.parentNode.offsetWidth - e.offsetWidth;
-// obj.maxBoundY = obj.minBoundY + e.parentNode.offsetHeight - e.offsetHeight;
-//
-//
-// dragObj.element.style.left = Math.max(dragObj.minBoundX, Math.min(event.clientX - dragObj.posX, dragObj.maxBoundX)) + "px";
-// dragObj.element.style.top = Math.max(dragObj.minBoundY, Math.min(event.clientY - dragObj.posY, dragObj.maxBoundY)) + "px";
-
-
-// ////////////////////////////////////////////////////////////////////
   var onMouseUp = function (upEvt) {
   upEvt.preventDefault();
   setMainPinAddress(true);
@@ -240,11 +208,5 @@ mainPin.style.top = Math.max(MAX_HEIGHT, Math.min(mainPin.offsetTop - shift.y, M
 document.addEventListener('mousemove', onMouseMove);
 document.addEventListener('mouseup', onMouseUp);
 });
-
-// ?????????????
-// document.addEventListener('click', function (evt) {
-//   // ..console.log(evt.clientX, evt.clientY)
-// });
-
 }
 )();
