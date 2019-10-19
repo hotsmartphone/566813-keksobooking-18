@@ -25,18 +25,28 @@
   };
 
   // Вычисляем адресс главного пина
-  var MAIN_PIN_WIDTH = 62;
-  var MAIN_PIN_HEIGHT = 62;
-  var MAIN_PIN_HEIGHT_POINT = 84;
+  var MAIN_PIN_WIDTH = 65;
+  var MAIN_PIN_HEIGHT = 65;
+  var MAIN_PIN_HEIGHT_POINT = 79;
   var pinAddress = document.querySelector('#address');
 
-  function getMainPinAddress(isActiveBoolean) {
+  var getMainPinAddress = function (isActiveBoolean) {
+    var mainPinAdress = {
+      x: Math.round(mainPin.getBoundingClientRect().left - mapPins.getBoundingClientRect().left + MAIN_PIN_WIDTH / 2) // x всегда одинаковый
+    };
     if (isActiveBoolean) {
-      pinAddress.setAttribute('value', ((window.map.mainPin.getBoundingClientRect().left - window.map.mapPins.getBoundingClientRect().left + MAIN_PIN_WIDTH / 2) + ', ' + (window.map.mainPin.getBoundingClientRect().top - window.map.mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT_POINT / 2)));
+      mainPinAdress.y = Math.round(mainPin.getBoundingClientRect().top - mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT_POINT);
     } else {
-      pinAddress.setAttribute('value', ((window.map.mainPin.getBoundingClientRect().left - window.map.mapPins.getBoundingClientRect().left + MAIN_PIN_WIDTH / 2) + ', ' + (window.map.mainPin.getBoundingClientRect().top - window.map.mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT / 2)));
+      mainPinAdress.y = Math.round(mainPin.getBoundingClientRect().top - mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT / 2);
     }
-  }
+    return mainPinAdress;
+    // ..console.log(mainPinAdress);
+  };
+
+  var setMainPinAddress = function (isActiveBoolean) {
+    var coordinates = getMainPinAddress(isActiveBoolean);
+    pinAddress.setAttribute('value', coordinates.x + ', ' + coordinates.y);
+  };
 
   // Делаем карту активной
   var mapActive = document.querySelector('.map');
@@ -66,7 +76,7 @@
     mapActive.classList.remove('map--faded');
     switchActiveForm(true);
     window.map.drawPins(randomAdvs);
-    getMainPinAddress(true);
+    setMainPinAddress(true);
     mainPin.removeEventListener('mousedown', mainPinClickHandler);
     mainPin.removeEventListener('keydown', mainPinEnterPressHandler);
   };
@@ -85,7 +95,7 @@
   // Функция, которая определяет, на пине сработал клик или нет и запускает фнукцию открытия соответствующей карточки
   var pinClickHandler = function (evt) {
     var target = evt.target;
-    while (target !== window.map.mapPins) {
+    while (target !== mapPins) {
       if (target.className === 'map__pin' && target.id) {
         testFunc(target);
         return;
@@ -140,7 +150,53 @@
     advForm: advForm,
     drawPins: drawPins,
     drawCards: drawCards,
-    getMainPinAddress: getMainPinAddress
+    setMainPinAddress: setMainPinAddress
   };
-}
-)();
+
+  // Передвижение метки
+  mainPin.addEventListener('mousedown', function (evt) {
+    evt.preventDefault();
+
+    var startCoords = {
+      x: evt.clientX,
+      y: evt.clientY
+    };
+
+    var onMouseMove = function (moveEvt) {
+      moveEvt.preventDefault();
+
+      var shift = {
+        x: startCoords.x - moveEvt.clientX,
+        y: startCoords.y - moveEvt.clientY
+      };
+
+      startCoords = {
+        x: moveEvt.clientX,
+        y: moveEvt.clientY
+      };
+      var MIN_HEIGHT_ADDRESS = 130;
+      var MAX_HEIGHT_ADDRESS = 630;
+      var MIN_HEIGHT_PIN_MOVE = MIN_HEIGHT_ADDRESS - MAIN_PIN_HEIGHT_POINT;
+      var MAX_HEIGHT_PIN_MOVE = MAX_HEIGHT_ADDRESS - MAIN_PIN_HEIGHT_POINT;
+      var MIN_WIDTH_PIN_MOVE = 0 - MAIN_PIN_WIDTH / 2;
+      var MAX_WIDTH_PIN_MOVE = mapPins.offsetWidth - MAIN_PIN_WIDTH / 2;
+
+
+      mainPin.style.left = Math.max(MIN_WIDTH_PIN_MOVE, Math.min(mainPin.offsetLeft - shift.x, MAX_WIDTH_PIN_MOVE)) + 'px';
+      mainPin.style.top = Math.max(MIN_HEIGHT_PIN_MOVE, Math.min(mainPin.offsetTop - shift.y, MAX_HEIGHT_PIN_MOVE)) + 'px';
+
+      setMainPinAddress(true);
+    };
+
+    var onMouseUp = function (upEvt) {
+      upEvt.preventDefault();
+      setMainPinAddress(true);
+
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+})();
