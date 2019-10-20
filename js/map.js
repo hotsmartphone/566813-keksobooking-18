@@ -2,14 +2,17 @@
 
 // МОДУЛЬ MAP.JS
 (function () {
+  // Переменная, в которую записывается массив объявлений, полученных от сервера
+  var advsList;
+
   // Отрисовываем пины
   var mapPins = document.querySelector('.map__pins');
 
-  var drawPins = function (advsList) {
+  var drawPins = function (advs) {
     var fragment = document.createDocumentFragment();
 
-    for (var i = 0; i < advsList.length; i++) {
-      fragment.appendChild(window.pin.renderPin(advsList[i], i));
+    for (var i = 0; i < advs.length; i++) {
+      fragment.appendChild(window.pin.renderPin(advs[i], i));
     }
     return mapPins.appendChild(fragment);
   };
@@ -70,12 +73,42 @@
 
   switchActiveForm(false);
 
-  var randomAdvs = window.data.getRandomAdvs(window.data.NUMBER_OF_ADVS);
+  // Функция обработки объявлений при их успешной загрузке с сервера
+  var successHandler = function (advs) {
+    drawPins(advs);
+    advsList = advs;
+  };
 
+  // Функция обработки ошибок при загрузке объявлений с сервера
+  var errorHandler = function (errorMessage) {
+    var errorTemplate = document.querySelector('#error').content;
+    var cloneError = errorTemplate.cloneNode(true);
+    var errorButton = cloneError.querySelector('.error__button');
+
+    cloneError.querySelector('.error__message').textContent = errorMessage;
+
+    var pageReload = function () {
+      location.reload(true);
+    };
+
+    var onErrorButtonEnterPress = function (evt) {
+      if (evt.keyCode === window.util.ENTER_KEYCODE) {
+        pageReload();
+      }
+    };
+
+    errorButton.addEventListener('click', pageReload);
+    errorButton.addEventListener('keydown', onErrorButtonEnterPress);
+
+    document.querySelector('main').append(cloneError);
+    errorButton.focus();
+  };
+
+  // Фнукция включения активного состояния
   var mainPinClickHandler = function () {
     mapActive.classList.remove('map--faded');
     switchActiveForm(true);
-    window.map.drawPins(randomAdvs);
+    window.load(successHandler, errorHandler);
     setMainPinAddress(true);
     mainPin.removeEventListener('mousedown', mainPinClickHandler);
     mainPin.removeEventListener('keydown', mainPinEnterPressHandler);
@@ -97,7 +130,7 @@
     var target = evt.target;
     while (target !== mapPins) {
       if (target.className === 'map__pin' && target.id) {
-        testFunc(target);
+        openPopup(target);
         return;
       }
       target = target.parentNode;
@@ -105,11 +138,11 @@
   };
 
   // Функция открытия карточки с обработчиками событий
-  function testFunc(target) {
+  function openPopup(target) {
     if (document.querySelector('.popup')) {
       document.querySelector('.popup').remove();
     }
-    window.map.drawCards(randomAdvs[target.id]);
+    window.map.drawCards(advsList[target.id]);
 
     var popup = document.querySelector('.popup');
     var popupClose = document.querySelector('.popup__close');
@@ -142,16 +175,6 @@
   }
 
   mapPins.addEventListener('click', pinClickHandler);
-
-  window.map = {
-    mapPins: mapPins,
-    mainPin: mainPin,
-    pinAddress: pinAddress,
-    advForm: advForm,
-    drawPins: drawPins,
-    drawCards: drawCards,
-    setMainPinAddress: setMainPinAddress
-  };
 
   // Передвижение метки
   mainPin.addEventListener('mousedown', function (evt) {
@@ -199,4 +222,14 @@
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
   });
+
+  window.map = {
+    mapPins: mapPins,
+    mainPin: mainPin,
+    pinAddress: pinAddress,
+    advForm: advForm,
+    drawPins: drawPins,
+    drawCards: drawCards,
+    setMainPinAddress: setMainPinAddress
+  };
 })();
