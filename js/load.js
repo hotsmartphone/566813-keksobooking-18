@@ -28,7 +28,9 @@
 
     if (method === 'POST') {
       xhr.send(data);
-    } else xhr.send();
+    } else {
+      xhr.send();
+    }
   };
 
   window.load = load;
