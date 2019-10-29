@@ -62,25 +62,26 @@
     if (boolean === true) {
       for (var i = 0; i < formInputsSelectors.length; i++) {
         formInputsSelectors[i].disabled = false;
-        advForm.classList.remove('ad-form--disabled');
       }
+      advForm.classList.remove('ad-form--disabled');
     } else {
       for (var j = 0; j < formInputsSelectors.length; j++) {
         formInputsSelectors[j].disabled = true;
       }
+      advForm.classList.add('ad-form--disabled');
     }
   }
 
   switchActiveForm(false);
 
   // Функция обработки объявлений при их успешной загрузке с сервера
-  var successHandler = function (advs) {
+  var successDownloadHandler = function (advs) {
     drawPins(advs);
     advsList = advs;
   };
 
   // Функция обработки ошибок при загрузке объявлений с сервера
-  var errorHandler = function (errorMessage) {
+  var errorDownloadHandler = function (errorMessage) {
     var errorTemplate = document.querySelector('#error').content;
     var cloneError = errorTemplate.cloneNode(true);
     var errorButton = cloneError.querySelector('.error__button');
@@ -89,6 +90,8 @@
 
     var pageReload = function () {
       location.reload(true);
+      errorButton.removeEventListener('click', pageReload);
+      errorButton.removeEventListener('keydown', onErrorButtonEnterPress);
     };
 
     var onErrorButtonEnterPress = function (evt) {
@@ -106,10 +109,12 @@
 
   // Фнукция включения активного состояния
   var mainPinClickHandler = function () {
+    window.load('GET', 'https://js.dump.academy/keksobooking/data', successDownloadHandler, errorDownloadHandler);
     mapActive.classList.remove('map--faded');
     switchActiveForm(true);
-    window.load(successHandler, errorHandler);
     setMainPinAddress(true);
+    window.form.setNumbersPlacesOption(window.form.roomNumber.querySelector('option:checked').value); // Запускаем фнукцию установки разрешенного количества мест сразу, чтобы пользователь случайно не отправил невалидные данные
+    window.form.setMinPricePlaceholder(window.form.housingTypeAdv.querySelector('option:checked').value);
     mainPin.removeEventListener('mousedown', mainPinClickHandler);
     mainPin.removeEventListener('keydown', mainPinEnterPressHandler);
   };
@@ -223,6 +228,16 @@
     document.addEventListener('mouseup', onMouseUp);
   });
 
+  // Удаляем все пины, кроме главного
+  var removePins = function () {
+    var pins = document.querySelectorAll('.map__pin');
+    for (var i = 0; i < pins.length; i++) {
+      if (pins[i] !== mainPin) {
+        pins[i].remove();
+      }
+    }
+  };
+
   window.map = {
     mapPins: mapPins,
     mainPin: mainPin,
@@ -230,6 +245,11 @@
     advForm: advForm,
     drawPins: drawPins,
     drawCards: drawCards,
-    setMainPinAddress: setMainPinAddress
+    setMainPinAddress: setMainPinAddress,
+    switchActiveForm: switchActiveForm,
+    mainPinClickHandler: mainPinClickHandler,
+    mainPinEnterPressHandler: mainPinClickHandler,
+    mapActive: mapActive,
+    removePins: removePins
   };
 })();

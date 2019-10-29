@@ -3,9 +3,7 @@
 // МОДУЛЬ lOAD.JS
 (function () {
 
-  var URL = 'https://js.dump.academy/keksobooking/data';
-
-  var load = function (onSuccess, onError) {
+  var load = function (method, URL, onSuccess, onError, data) {
     var xhr = new XMLHttpRequest();
 
     xhr.responseType = 'json';
@@ -26,8 +24,13 @@
 
     xhr.timeout = 10000; // 10сек
 
-    xhr.open('GET', URL);
-    xhr.send();
+    xhr.open(method, URL);
+
+    if (method === 'POST') {
+      xhr.send(data);
+    } else {
+      xhr.send();
+    }
   };
 
   window.load = load;
