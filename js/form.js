@@ -2,7 +2,7 @@
 
 // МОДУЛЬ FORM.JS
 (function () {
-  window.map.setMainPinAddress();
+  window.map.setMainPinAddress(false);
   // Накладываем валиадацию на зависимость количества комнат от количества гостей и наоборот
   // Объект, в котором ключ - количество комнат, а значение - массив доступного количества места для такого количества комнат
   var capacityRoomsGuests = {
@@ -15,14 +15,8 @@
   var roomNumber = document.querySelector('#room_number');
   var capacityRoomOptions = document.querySelectorAll('#capacity option');
 
-  // Функция, которая срабатывает при смене количества комнат. Ограничивает список мест до разрешенного для даннного количества комнат
-  function matchRoomsToGuests(evt) {
-    var targetValue = evt.target.value;
-    setPriceOption(targetValue);
-  }
-
   // Делаю неактивными все пункты количества мест
-  var setPriceOption = function (targetValue) {
+  var setNumbersPlacesOption = function (targetValue) {
     for (var i = 0; i < capacityRoomOptions.length; i++) {
       capacityRoomOptions[i].disabled = true;
     }
@@ -41,15 +35,15 @@
     }
   };
 
+  // Функция, которая срабатывает при смене количества комнат. Ограничивает список мест до разрешенного для даннного количества комнат
+  function matchRoomsToGuests(evt) {
+    var targetValue = evt.target.value;
+    setNumbersPlacesOption(targetValue);
+  }
+
   roomNumber.addEventListener('change', matchRoomsToGuests);
 
-  // Запускаем фнукцию установки разрешенного количества мест сразу при открытии страницы, чтобы пользователь случайно не отправил невалидные данные
-  setPriceOption(roomNumber.querySelector('option:checked').value);
-
-
   // Продолажем валидировать
-  // Добавляем адрес отправки формы
-  window.map.advForm.action = 'https://js.dump.academy/keksobooking';
 
   // Валидация заголовка
   var titleAdv = document.querySelector('#title');
@@ -93,9 +87,9 @@
 
   housingTypeAdv.addEventListener('change', matchTypePrice);
 
-  // По умолчанию тип жилья "Квартира", для которого не установлено минимальное значение. Оно устанавливается только при смене типа жилья. Проставим минимальное значение при открытии страницы.
-  var selectedHousingTypeValue = housingTypeAdv.querySelector('option:checked').value;
-  setMinPricePlaceholder(selectedHousingTypeValue);
+  // // По умолчанию тип жилья "Квартира", для которого не установлено минимальное значение. Оно устанавливается только при смене типа жилья. Проставим минимальное значение при открытии страницы.
+  // var selectedHousingTypeValue = housingTypeAdv.querySelector('option:checked').value;
+  // setMinPricePlaceholder(selectedHousingTypeValue);
 
   // Валидация адреса
   window.map.pinAddress.required = true;
@@ -116,4 +110,89 @@
 
   checkin.addEventListener('change', matchCheckinCheckout);
   checkout.addEventListener('change', matchCheckinCheckout);
+
+  // Отправка данных формы при нажатии на кнопку "Опубликовать"
+
+  // Функция обработки успешной загрузки данных формы на сервер
+  var onSuccessUploadHandler = function () {
+    // возвращаю пин в центр
+    window.map.mainPin.style = 'left: 570px; top: 375px';
+
+    // очистите заполненные поля
+    window.map.advForm.reset(); // reset формы
+    titleAdv.setAttribute('value', ''); // нулевое значение в input, так как reset здесь не помогает
+    window.map.switchActiveForm(false); // дизейбл поле формы объявления и фильтров
+    window.map.removePins();
+    window.map.mapActive.classList.add('map--faded'); // оверлей на карту
+    window.map.setMainPinAddress(false); // заполнение координат главного пина
+
+    window.map.mainPin.addEventListener('mousedown', window.map.mainPinClickHandler);
+    window.map.mainPin.addEventListener('keydown', window.map.mainPinEnterPressHandler);
+
+
+    var successTemplate = document.querySelector('#success').content;
+    var cloneSuccess = successTemplate.cloneNode(true);
+    document.querySelector('main').append(cloneSuccess);
+
+    var closeSuccessOverlay = function () {
+      document.querySelector('.success').remove();
+      document.removeEventListener('keydown', onSuccessOverlayEscPress);
+      document.removeEventListener('click', closeSuccessOverlay);
+    };
+    var onSuccessOverlayEscPress = function (evt) {
+      if (evt.keyCode === window.util.ESC_KEYCODE) {
+        closeSuccessOverlay();
+      }
+    };
+    document.addEventListener('keydown', onSuccessOverlayEscPress);
+    document.addEventListener('click', closeSuccessOverlay);
+  };
+
+  // Функция обработки ошибок при загрузке объявлений с сервера
+  var errorUploadHandler = function (errorMessage) {
+    var errorTemplate = document.querySelector('#error').content;
+    var cloneError = errorTemplate.cloneNode(true);
+    var errorButton = cloneError.querySelector('.error__button');
+
+    cloneError.querySelector('.error__message').textContent = errorMessage;
+
+    var closeErrorOverlay = function () {
+      document.querySelector('.error').remove();
+
+      document.removeEventListener('keydown', onErrorOverlayEscPress);
+      document.removeEventListener('click', closeErrorOverlay);
+      errorButton.addEventListener('keydown', onErrorButtonEnterPress);
+    };
+
+    var onErrorButtonEnterPress = function (evt) {
+      if (evt.keyCode === window.util.ENTER_KEYCODE) {
+        closeErrorOverlay();
+      }
+    };
+    var onErrorOverlayEscPress = function (evt) {
+      if (evt.keyCode === window.util.ESC_KEYCODE) {
+        closeErrorOverlay();
+      }
+    };
+
+    document.addEventListener('click', closeErrorOverlay);
+    errorButton.addEventListener('keydown', onErrorButtonEnterPress);
+    document.addEventListener('keydown', onErrorOverlayEscPress);
+
+    document.querySelector('main').append(cloneError);
+    errorButton.focus();
+  };
+
+  // Обработчик на submit формы
+  window.map.advForm.addEventListener('submit', function (evt) {
+    evt.preventDefault();
+    window.load('POST', 'https://js.dump.academy/keksobooking', onSuccessUploadHandler, errorUploadHandler, new FormData(window.map.advForm));
+  });
+
+  window.form = {
+    setNumbersPlacesOption: setNumbersPlacesOption,
+    setMinPricePlaceholder: setMinPricePlaceholder,
+    housingTypeAdv: housingTypeAdv,
+    roomNumber: roomNumber
+  };
 })();
