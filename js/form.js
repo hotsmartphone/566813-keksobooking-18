@@ -87,10 +87,6 @@
 
   housingTypeAdv.addEventListener('change', matchTypePrice);
 
-  // // По умолчанию тип жилья "Квартира", для которого не установлено минимальное значение. Оно устанавливается только при смене типа жилья. Проставим минимальное значение при открытии страницы.
-  // var selectedHousingTypeValue = housingTypeAdv.querySelector('option:checked').value;
-  // setMinPricePlaceholder(selectedHousingTypeValue);
-
   // Валидация адреса
   window.map.pinAddress.required = true;
   window.map.pinAddress.setAttribute('readonly', true);
@@ -129,6 +125,7 @@
     window.map.mainPin.addEventListener('mousedown', window.map.mainPinClickHandler);
     window.map.mainPin.addEventListener('keydown', window.map.mainPinEnterPressHandler);
 
+    window.filter.housingTypeFilter.removeEventListener('change', window.filter.filterPinsHousingType); // Удаляю обработчик события при фильтрации по типу жилья, так как карта неактивна
 
     var successTemplate = document.querySelector('#success').content;
     var cloneSuccess = successTemplate.cloneNode(true);
