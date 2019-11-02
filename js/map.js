@@ -76,8 +76,8 @@
 
   // Функция обработки объявлений при их успешной загрузке с сервера
   var successDownloadHandler = function (advs) {
-    drawPins(advs);
-    advsList = advs;
+    window.map.advsList = advs.slice();
+    drawPins(advs.slice(0, 5));
   };
 
   // Функция обработки ошибок при загрузке объявлений с сервера
@@ -115,6 +115,7 @@
     setMainPinAddress(true);
     window.form.setNumbersPlacesOption(window.form.roomNumber.querySelector('option:checked').value); // Запускаем фнукцию установки разрешенного количества мест сразу, чтобы пользователь случайно не отправил невалидные данные
     window.form.setMinPricePlaceholder(window.form.housingTypeAdv.querySelector('option:checked').value);
+    window.filter.housingTypeFilter.addEventListener('change', window.filter.filterPinsHousingType);
     mainPin.removeEventListener('mousedown', mainPinClickHandler);
     mainPin.removeEventListener('keydown', mainPinEnterPressHandler);
   };
@@ -142,42 +143,58 @@
     }
   };
 
-  // Функция открытия карточки с обработчиками событий
-  function openPopup(target) {
+
+  var popup;
+  var popupClose;
+
+  var checkAndClosePopup = function () {
     if (document.querySelector('.popup')) {
-      document.querySelector('.popup').remove();
-    }
-    window.map.drawCards(advsList[target.id]);
-
-    var popup = document.querySelector('.popup');
-    var popupClose = document.querySelector('.popup__close');
-
-
-    var onPopupEscPress = function (evt) {
-      if (evt.keyCode === window.util.ESC_KEYCODE) {
-        closePopup();
-      }
-    };
-
-    var onPopupCloseEnterPress = function (evt) {
-      if (evt.keyCode === window.util.ENTER_KEYCODE) {
-        closePopup();
-      }
-    };
-    // Функция обработчика закрытия
-    var closePopup = function () {
-      popup.remove();
-      document.removeEventListener('keydown', onPopupEscPress);
-    };
-    // Обработчик событий на закрытие окна
-    popupClose.addEventListener('click', function () {
       closePopup();
-    });
+    }
+  };
+
+  // Функция обработчика закрытия
+  var closePopup = function () {
+    popup = document.querySelector('.popup');
+    removeListeners();
+    popup.remove();
+  };
+
+  var removeListeners = function () {
+    popupClose = document.querySelector('.popup__close');
+    // Удаляю все обработчики
+    popupClose.removeEventListener('click', closePopup);
+    popupClose.removeEventListener('keydown', onPopupCloseEnterPress);
+    document.removeEventListener('keydown', onPopupEscPress);
+  };
+
+  var onPopupEscPress = function (evt) {
+    if (evt.keyCode === window.util.ESC_KEYCODE) {
+      closePopup();
+    }
+  };
+
+  var onPopupCloseEnterPress = function (evt) {
+    if (evt.keyCode === window.util.ENTER_KEYCODE) {
+      closePopup();
+    }
+  };
+
+  // Функция открытия карточки с обработчиками событий
+  var openPopup = function (target) {
+    checkAndClosePopup();
+
+    drawCards(window.map.advsList[target.id]);
+
+    popupClose = document.querySelector('.popup__close');
+
+    // Обработчик событий на закрытие окна при клике на крестик
+    popupClose.addEventListener('click', closePopup);
     // Закрытие карточки по ENTER
     popupClose.addEventListener('keydown', onPopupCloseEnterPress);
     // Закрытие карточки по Esc
     document.addEventListener('keydown', onPopupEscPress);
-  }
+  };
 
   mapPins.addEventListener('click', pinClickHandler);
 
@@ -239,6 +256,8 @@
   };
 
   window.map = {
+    advsList: advsList,
+    checkAndClosePopup: checkAndClosePopup,
     mapPins: mapPins,
     mainPin: mainPin,
     pinAddress: pinAddress,
