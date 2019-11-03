@@ -18,5 +18,4 @@
     return pinElement;
   };
   window.pin.renderPin = renderPin;
-}
-)();
+})();
