@@ -2,8 +2,9 @@
 
 // МОДУЛЬ MAP.JS
 (function () {
-  // Переменная, в которую записывается массив объявлений, полученных от сервера
-  var advsList;
+
+  var advsList = []; // Переменная, в которую записывается весь массив объявлений, полученных от сервера
+  var activeAdvs = []; // Переменная с актвным массивом объявлений (после фильтрации и отсечения)
 
   // Отрисовываем пины
   var mapPins = document.querySelector('.map__pins');
@@ -18,7 +19,7 @@
   };
 
   // Отрисовываем карточки
-  var drawCards = function (adv) {
+  var drawCard = function (adv) {
     var mapFilters = document.querySelector('.map__filters-container'); // Перед данным разделом добавляются карточки
     var fragment = document.createDocumentFragment();
 
@@ -77,7 +78,8 @@
   // Функция обработки объявлений при их успешной загрузке с сервера
   var successDownloadHandler = function (advs) {
     window.map.advsList = advs.slice();
-    drawPins(advs.slice(0, 5));
+    window.map.activeAdvs = window.map.advsList.slice(0, window.MAX_SHOWN_PINS);
+    drawPins(window.map.activeAdvs);
   };
 
   // Функция обработки ошибок при загрузке объявлений с сервера
@@ -115,7 +117,6 @@
     setMainPinAddress(true);
     window.form.setNumbersPlacesOption(window.form.roomNumber.querySelector('option:checked').value); // Запускаем фнукцию установки разрешенного количества мест сразу, чтобы пользователь случайно не отправил невалидные данные
     window.form.setMinPricePlaceholder(window.form.housingTypeAdv.querySelector('option:checked').value);
-    window.filter.housingTypeFilter.addEventListener('change', window.filter.filterPinsHousingType);
     mainPin.removeEventListener('mousedown', mainPinClickHandler);
     mainPin.removeEventListener('keydown', mainPinEnterPressHandler);
   };
@@ -143,9 +144,9 @@
     }
   };
 
-
   var popup;
   var popupClose;
+  var activePin;
 
   var checkAndClosePopup = function () {
     if (document.querySelector('.popup')) {
@@ -158,6 +159,7 @@
     popup = document.querySelector('.popup');
     removeListeners();
     popup.remove();
+    activePin.classList.remove('map__pin--active');
   };
 
   var removeListeners = function () {
@@ -184,7 +186,11 @@
   var openPopup = function (target) {
     checkAndClosePopup();
 
-    drawCards(window.map.advsList[target.id]);
+    activePin = target;
+
+    drawCard(window.map.activeAdvs[target.id]);
+
+    activePin.classList.add('map__pin--active');
 
     popupClose = document.querySelector('.popup__close');
 
@@ -257,13 +263,13 @@
 
   window.map = {
     advsList: advsList,
+    activeAdvs: activeAdvs,
     checkAndClosePopup: checkAndClosePopup,
     mapPins: mapPins,
     mainPin: mainPin,
     pinAddress: pinAddress,
     advForm: advForm,
     drawPins: drawPins,
-    drawCards: drawCards,
     setMainPinAddress: setMainPinAddress,
     switchActiveForm: switchActiveForm,
     mainPinClickHandler: mainPinClickHandler,
