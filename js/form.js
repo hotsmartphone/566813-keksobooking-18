@@ -107,8 +107,21 @@
   checkin.addEventListener('change', matchCheckinCheckout);
   checkout.addEventListener('change', matchCheckinCheckout);
 
-  // Отправка данных формы при нажатии на кнопку "Опубликовать"
+  // Функция сброса превью аватарки и фото жилья
+  var resetPhotos = function () {
+    window.previewAvatar.src = 'img/muffin-grey.svg';
+    var housingPhotos = document.querySelectorAll('div .ad-form__photo');
+    var parentHousingPhotoBlock = document.querySelector('.ad-form__photo').parentNode;
+    if (housingPhotos.length > 0) {
+      var housingPhoto = housingPhotos[0]; // Клонируем любой из элементов div с классом .ad-form__photo, чтобы оставить его единственным блоком при сбросе формы
+      housingPhotos.forEach(function (it) { // Удаляем все блоки с фото
+        it.remove();
+      });
+      parentHousingPhotoBlock.appendChild(housingPhoto); // Оставляем один блок
+    }
+  };
 
+  // Отправка данных формы при нажатии на кнопку "Опубликовать"
   // Функция обработки успешной загрузки данных формы на сервер
   var onSuccessUploadHandler = function () {
     // возвращаю пин в центр
@@ -116,6 +129,7 @@
 
     // очистите заполненные поля
     window.map.advForm.reset(); // reset формы
+    resetPhotos(); // Очищение превью картинок в форме
     titleAdv.setAttribute('value', ''); // нулевое значение в input, так как reset здесь не помогает
     window.map.switchActiveForm(false); // дизейбл поле формы объявления и фильтров
     window.map.removePins();
@@ -124,8 +138,6 @@
 
     window.map.mainPin.addEventListener('mousedown', window.map.mainPinClickHandler);
     window.map.mainPin.addEventListener('keydown', window.map.mainPinEnterPressHandler);
-
-    window.filter.housingTypeFilter.removeEventListener('change', window.filter.filterPinsHousingType); // Удаляю обработчик события при фильтрации по типу жилья, так как карта неактивна
 
     var successTemplate = document.querySelector('#success').content;
     var cloneSuccess = successTemplate.cloneNode(true);

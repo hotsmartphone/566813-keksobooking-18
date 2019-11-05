@@ -8,9 +8,10 @@
   var guestsFilter = document.querySelector('#housing-guests');
 
   window.MAX_SHOWN_PINS = 5;
-  var PRICE_CHOISES = {// middle - то, что между low и high
+
+  var PRICE_CHOISES = {// Диапазоны значений из фильтра цены жилья
     low: 10000,
-    high: 50000
+    high: 50000 // middle - то, что между low и high
   };
 
   var selectedFilters = {
@@ -128,8 +129,7 @@
     debouncedUpdateAdvs();
   });
 
-
-  var addFeaturesListeners = function () { // Функция вешает обработчик событий на каждый из шести чекбоксов
+  var addFeaturesFiltersListeners = function () { // Функция вешает обработчик событий на каждый из шести чекбоксов
     var featuresInput = document.querySelectorAll('[id^=filter-]');
     for (var i = 0; i < featuresInput.length; i++) {
       featuresInput[i].addEventListener('change', function (evt) {
@@ -139,5 +139,5 @@
     }
   };
 
-  addFeaturesListeners();
+  addFeaturesFiltersListeners();
 })();
