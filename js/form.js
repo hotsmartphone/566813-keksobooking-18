@@ -122,22 +122,27 @@
   };
 
   // Отправка данных формы при нажатии на кнопку "Опубликовать"
-  // Функция обработки успешной загрузки данных формы на сервер
-  var onSuccessUploadHandler = function () {
-    // возвращаю пин в центр
-    window.map.mainPin.style = 'left: 570px; top: 375px';
-
+  // Фнукция возврата в неактивное состояние
+  var returnInactiveState = function () {
     // очистите заполненные поля
     window.map.advForm.reset(); // reset формы
     resetPhotos(); // Очищение превью картинок в форме
     titleAdv.setAttribute('value', ''); // нулевое значение в input, так как reset здесь не помогает
-    window.map.switchActiveForm(false); // дизейбл поле формы объявления и фильтров
+    window.map.switchActiveForm(false); // дизейбл полей формы объявления и фильтров
     window.map.removePins();
     window.map.mapActive.classList.add('map--faded'); // оверлей на карту
     window.map.setMainPinAddress(false); // заполнение координат главного пина
 
     window.map.mainPin.addEventListener('mousedown', window.map.mainPinClickHandler);
     window.map.mainPin.addEventListener('keydown', window.map.mainPinEnterPressHandler);
+  };
+
+  // Функция обработки успешной загрузки данных формы на сервер
+  var onSuccessUploadHandler = function () {
+    // возвращаю пин в центр
+    window.map.mainPin.style = 'left: 570px; top: 375px';
+
+    returnInactiveState();
 
     var successTemplate = document.querySelector('#success').content;
     var cloneSuccess = successTemplate.cloneNode(true);
@@ -197,6 +202,53 @@
     evt.preventDefault();
     window.load('POST', 'https://js.dump.academy/keksobooking', onSuccessUploadHandler, errorUploadHandler, new FormData(window.map.advForm));
   });
+
+  // Обработчики на кнопку сброса формы
+  var resetFormButton = document.querySelector('.ad-form__reset');
+
+  resetFormButton.addEventListener('click', function () {
+    returnInactiveState();
+  });
+
+  var onResetFormButtonEnterPress = function (evt) {
+    if (evt.keyCode === window.util.ENTER_KEYCODE) {
+      returnInactiveState();
+    }
+  };
+
+  resetFormButton.addEventListener('keydown', onResetFormButtonEnterPress);
+
+
+
+
+
+
+
+// var testFunc = function (evt) {
+//   // if (evt.keyCode === window.util.ENTER_KEYCODE) {
+//     var inputOfLabel = document.querySelector('#' + featuresLabels[i].for);
+//     console.log(inputOfLabel);
+//     inputOfLabel.checked = 'checked';
+// // }
+// };
+// // Нажатие клавишей Enter на удобства
+// var featuresLabels = document.querySelectorAll('label.feature');
+// for (var i = 0; i < featuresLabels.length; i++) {
+//   featuresLabels[i].addEventListener('click', testFunc);
+// };
+
+// var label = document.querySelector('.feature--wifi');
+//
+// label.addEventListener('keydown', function (evt) {
+//   console.log('Привет1');
+//   evt.preventDefault();
+//   if (evt.keyCode === window.util.ENTER_KEYCODE) {
+//     console.log('Привет');
+//     // inputOfLabel.checked = 'checked';
+//  }
+// });
+
+
 
   window.form = {
     setNumbersPlacesOption: setNumbersPlacesOption,

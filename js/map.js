@@ -2,7 +2,6 @@
 
 // МОДУЛЬ MAP.JS
 (function () {
-
   var advsList = []; // Переменная, в которую записывается весь массив объявлений, полученных от сервера
   var activeAdvs = []; // Переменная с актвным массивом объявлений (после фильтрации и отсечения)
 
@@ -77,7 +76,9 @@
 
   // Функция обработки объявлений при их успешной загрузке с сервера
   var successDownloadHandler = function (advs) {
-    window.map.advsList = advs.slice();
+    window.map.advsList = advs.slice().filter(function (it) { // Фильтруем полученные данные - убираем объявления, у которых нет offer
+      return it.offer;
+    });
     window.map.activeAdvs = window.map.advsList.slice(0, window.MAX_SHOWN_PINS);
     drawPins(window.map.activeAdvs);
   };
