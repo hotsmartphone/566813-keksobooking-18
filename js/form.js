@@ -36,12 +36,12 @@
   };
 
   // Функция, которая срабатывает при смене количества комнат. Ограничивает список мест до разрешенного для даннного количества комнат
-  function matchRoomsToGuests(evt) {
+  function onRoomsNumbersChange(evt) {
     var targetValue = evt.target.value;
     setNumbersPlacesOption(targetValue);
   }
 
-  roomNumber.addEventListener('change', matchRoomsToGuests);
+  roomNumber.addEventListener('change', onRoomsNumbersChange);
 
   // Продолажем валидировать
 
@@ -51,10 +51,10 @@
   titleAdv.setAttribute('maxlength', 100);
   titleAdv.required = true;
 
-  var setNewTitle = function (evt) {
+  var onTitleInput = function (evt) {
     titleAdv.setAttribute('value', evt.target.value);
   };
-  titleAdv.addEventListener('input', setNewTitle);
+  titleAdv.addEventListener('input', onTitleInput);
 
   // Валидация цены
   var priceAdv = document.querySelector('#price');
@@ -71,7 +71,7 @@
   };
 
   // Функция в зависимости от типа жилья устанавливает минимальное значение цены и placeholder
-  var matchTypePrice = function (evt) {
+  var onPriceChange = function (evt) {
     var targetValue = evt.target.value;
     setMinPricePlaceholder(targetValue);
   };
@@ -85,7 +85,7 @@
     }
   };
 
-  housingTypeAdv.addEventListener('change', matchTypePrice);
+  housingTypeAdv.addEventListener('change', onPriceChange);
 
   // Валидация адреса
   window.map.pinAddress.required = true;
@@ -95,7 +95,7 @@
   var checkin = document.querySelector('#timein');
   var checkout = document.querySelector('#timeout');
 
-  var matchCheckinCheckout = function (evt) {
+  var onCheckinChange = function (evt) {
     var target = evt.target;
     if (target === checkin) {
       checkout.value = target.value;
@@ -104,45 +104,60 @@
     }
   };
 
-  checkin.addEventListener('change', matchCheckinCheckout);
-  checkout.addEventListener('change', matchCheckinCheckout);
+  checkin.addEventListener('change', onCheckinChange);
+  checkout.addEventListener('change', onCheckinChange);
+
+  // Функция сброса превью аватарки и фото жилья
+  var resetPhotos = function () {
+    window.previewAvatar.src = 'img/muffin-grey.svg';
+    var housingPhotos = document.querySelectorAll('div .ad-form__photo');
+    var parentHousingPhotoBlock = document.querySelector('.ad-form__photo').parentNode;
+    if (housingPhotos.length > 0) {
+      var housingPhoto = housingPhotos[0]; // Клонируем любой из элементов div с классом .ad-form__photo, чтобы оставить его единственным блоком при сбросе формы
+      housingPhotos.forEach(function (it) { // Удаляем все блоки с фото
+        it.remove();
+      });
+      parentHousingPhotoBlock.appendChild(housingPhoto); // Оставляем один блок
+    }
+  };
 
   // Отправка данных формы при нажатии на кнопку "Опубликовать"
+  // Фнукция возврата в неактивное состояние
+  var returnInactiveState = function () {
+    // очистите заполненные поля
+    window.map.advForm.reset(); // reset формы
+    resetPhotos(); // Очищение превью картинок в форме
+    titleAdv.setAttribute('value', ''); // нулевое значение в input, так как reset здесь не помогает
+    window.map.switchActiveForm(false); // дизейбл полей формы объявления и фильтров
+    window.map.removePins();
+    window.map.mapActive.classList.add('map--faded'); // оверлей на карту
+    window.map.mainPin.style = 'left: 570px; top: 375px'; // возвращаю пин в центр
+    window.map.setMainPinAddress(false); // заполнение координат главного пина
+
+    window.map.mainPin.addEventListener('mousedown', window.map.onMainPinClick);
+    window.map.mainPin.addEventListener('keydown', window.map.onMainPinEnterPress);
+  };
 
   // Функция обработки успешной загрузки данных формы на сервер
   var onSuccessUploadHandler = function () {
-    // возвращаю пин в центр
-    window.map.mainPin.style = 'left: 570px; top: 375px';
-
-    // очистите заполненные поля
-    window.map.advForm.reset(); // reset формы
-    titleAdv.setAttribute('value', ''); // нулевое значение в input, так как reset здесь не помогает
-    window.map.switchActiveForm(false); // дизейбл поле формы объявления и фильтров
-    window.map.removePins();
-    window.map.mapActive.classList.add('map--faded'); // оверлей на карту
-    window.map.setMainPinAddress(false); // заполнение координат главного пина
-
-    window.map.mainPin.addEventListener('mousedown', window.map.mainPinClickHandler);
-    window.map.mainPin.addEventListener('keydown', window.map.mainPinEnterPressHandler);
-
-    window.filter.housingTypeFilter.removeEventListener('change', window.filter.filterPinsHousingType); // Удаляю обработчик события при фильтрации по типу жилья, так как карта неактивна
+    returnInactiveState();
 
     var successTemplate = document.querySelector('#success').content;
     var cloneSuccess = successTemplate.cloneNode(true);
     document.querySelector('main').append(cloneSuccess);
 
-    var closeSuccessOverlay = function () {
+    var onSuccessOverlayClick = function () {
       document.querySelector('.success').remove();
       document.removeEventListener('keydown', onSuccessOverlayEscPress);
-      document.removeEventListener('click', closeSuccessOverlay);
+      document.removeEventListener('click', onSuccessOverlayClick);
     };
     var onSuccessOverlayEscPress = function (evt) {
       if (evt.keyCode === window.util.ESC_KEYCODE) {
-        closeSuccessOverlay();
+        onSuccessOverlayClick();
       }
     };
     document.addEventListener('keydown', onSuccessOverlayEscPress);
-    document.addEventListener('click', closeSuccessOverlay);
+    document.addEventListener('click', onSuccessOverlayClick);
   };
 
   // Функция обработки ошибок при загрузке объявлений с сервера
@@ -153,26 +168,26 @@
 
     cloneError.querySelector('.error__message').textContent = errorMessage;
 
-    var closeErrorOverlay = function () {
+    var onErrorOverlayClick = function () {
       document.querySelector('.error').remove();
 
       document.removeEventListener('keydown', onErrorOverlayEscPress);
-      document.removeEventListener('click', closeErrorOverlay);
+      document.removeEventListener('click', onErrorOverlayClick);
       errorButton.addEventListener('keydown', onErrorButtonEnterPress);
     };
 
     var onErrorButtonEnterPress = function (evt) {
       if (evt.keyCode === window.util.ENTER_KEYCODE) {
-        closeErrorOverlay();
+        onErrorOverlayClick();
       }
     };
     var onErrorOverlayEscPress = function (evt) {
       if (evt.keyCode === window.util.ESC_KEYCODE) {
-        closeErrorOverlay();
+        onErrorOverlayClick();
       }
     };
 
-    document.addEventListener('click', closeErrorOverlay);
+    document.addEventListener('click', onErrorOverlayClick);
     errorButton.addEventListener('keydown', onErrorButtonEnterPress);
     document.addEventListener('keydown', onErrorOverlayEscPress);
 
@@ -185,6 +200,35 @@
     evt.preventDefault();
     window.load('POST', 'https://js.dump.academy/keksobooking', onSuccessUploadHandler, errorUploadHandler, new FormData(window.map.advForm));
   });
+
+  // Обработчики на кнопку сброса формы
+  var resetFormButton = document.querySelector('.ad-form__reset');
+
+  resetFormButton.addEventListener('click', function () {
+    returnInactiveState();
+  });
+
+  var onResetFormButtonEnterPress = function (evt) {
+    if (evt.keyCode === window.util.ENTER_KEYCODE) {
+      returnInactiveState();
+    }
+  };
+
+  resetFormButton.addEventListener('keydown', onResetFormButtonEnterPress);
+
+  // Обработка нажатий клавишей Enter на удобства
+  var onFeatureInputEnterPress = function (evt) {
+    if (evt.keyCode === window.util.ENTER_KEYCODE) {
+      evt.preventDefault();
+      evt.target.checked = !evt.target.checked;
+    }
+  };
+
+  var featuresInputs = document.querySelectorAll('input[name=features]');
+
+  for (var i = 0; i < featuresInputs.length; i++) {
+    featuresInputs[i].addEventListener('keydown', onFeatureInputEnterPress);
+  }
 
   window.form = {
     setNumbersPlacesOption: setNumbersPlacesOption,

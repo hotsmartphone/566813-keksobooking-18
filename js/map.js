@@ -2,7 +2,6 @@
 
 // МОДУЛЬ MAP.JS
 (function () {
-
   var advsList = []; // Переменная, в которую записывается весь массив объявлений, полученных от сервера
   var activeAdvs = []; // Переменная с актвным массивом объявлений (после фильтрации и отсечения)
 
@@ -77,9 +76,12 @@
 
   // Функция обработки объявлений при их успешной загрузке с сервера
   var successDownloadHandler = function (advs) {
-    window.map.advsList = advs.slice();
+    window.map.advsList = advs.slice().filter(function (it) { // Фильтруем полученные данные - убираем объявления, у которых нет offer
+      return it.offer;
+    });
     window.map.activeAdvs = window.map.advsList.slice(0, window.MAX_SHOWN_PINS);
     drawPins(window.map.activeAdvs);
+    mapActive.classList.remove('map--faded');
   };
 
   // Функция обработки ошибок при загрузке объявлений с сервера
@@ -90,19 +92,19 @@
 
     cloneError.querySelector('.error__message').textContent = errorMessage;
 
-    var pageReload = function () {
+    var onErrorButtonClick = function () {
       location.reload(true);
-      errorButton.removeEventListener('click', pageReload);
+      errorButton.removeEventListener('click', onErrorButtonClick);
       errorButton.removeEventListener('keydown', onErrorButtonEnterPress);
     };
 
     var onErrorButtonEnterPress = function (evt) {
       if (evt.keyCode === window.util.ENTER_KEYCODE) {
-        pageReload();
+        onErrorButtonClick();
       }
     };
 
-    errorButton.addEventListener('click', pageReload);
+    errorButton.addEventListener('click', onErrorButtonClick);
     errorButton.addEventListener('keydown', onErrorButtonEnterPress);
 
     document.querySelector('main').append(cloneError);
@@ -110,30 +112,29 @@
   };
 
   // Фнукция включения активного состояния
-  var mainPinClickHandler = function () {
+  var onMainPinClick = function () {
     window.load('GET', 'https://js.dump.academy/keksobooking/data', successDownloadHandler, errorDownloadHandler);
-    mapActive.classList.remove('map--faded');
     switchActiveForm(true);
     setMainPinAddress(true);
     window.form.setNumbersPlacesOption(window.form.roomNumber.querySelector('option:checked').value); // Запускаем фнукцию установки разрешенного количества мест сразу, чтобы пользователь случайно не отправил невалидные данные
     window.form.setMinPricePlaceholder(window.form.housingTypeAdv.querySelector('option:checked').value);
-    mainPin.removeEventListener('mousedown', mainPinClickHandler);
-    mainPin.removeEventListener('keydown', mainPinEnterPressHandler);
+    mainPin.removeEventListener('mousedown', onMainPinClick);
+    mainPin.removeEventListener('keydown', onMainPinEnterPress);
   };
 
-  var mainPinEnterPressHandler = function (evt) {
+  var onMainPinEnterPress = function (evt) {
     if (evt.keyCode === window.util.ENTER_KEYCODE) {
-      mainPinClickHandler();
+      onMainPinClick();
     }
   };
 
-  mainPin.addEventListener('mousedown', mainPinClickHandler);
-  mainPin.addEventListener('keydown', mainPinEnterPressHandler);
+  mainPin.addEventListener('mousedown', onMainPinClick);
+  mainPin.addEventListener('keydown', onMainPinEnterPress);
 
   // Открытие и закрытие карточек объявлений
 
   // Функция, которая определяет, на пине сработал клик или нет и запускает фнукцию открытия соответствующей карточки
-  var pinClickHandler = function (evt) {
+  var onMapPinsClick = function (evt) {
     var target = evt.target;
     while (target !== mapPins) {
       if (target.className === 'map__pin' && target.id) {
@@ -150,12 +151,12 @@
 
   var checkAndClosePopup = function () {
     if (document.querySelector('.popup')) {
-      closePopup();
+      onPopupCloseClick();
     }
   };
 
   // Функция обработчика закрытия
-  var closePopup = function () {
+  var onPopupCloseClick = function () {
     popup = document.querySelector('.popup');
     removeListeners();
     popup.remove();
@@ -165,20 +166,20 @@
   var removeListeners = function () {
     popupClose = document.querySelector('.popup__close');
     // Удаляю все обработчики
-    popupClose.removeEventListener('click', closePopup);
+    popupClose.removeEventListener('click', onPopupCloseClick);
     popupClose.removeEventListener('keydown', onPopupCloseEnterPress);
     document.removeEventListener('keydown', onPopupEscPress);
   };
 
   var onPopupEscPress = function (evt) {
     if (evt.keyCode === window.util.ESC_KEYCODE) {
-      closePopup();
+      onPopupCloseClick();
     }
   };
 
   var onPopupCloseEnterPress = function (evt) {
     if (evt.keyCode === window.util.ENTER_KEYCODE) {
-      closePopup();
+      onPopupCloseClick();
     }
   };
 
@@ -195,14 +196,14 @@
     popupClose = document.querySelector('.popup__close');
 
     // Обработчик событий на закрытие окна при клике на крестик
-    popupClose.addEventListener('click', closePopup);
+    popupClose.addEventListener('click', onPopupCloseClick);
     // Закрытие карточки по ENTER
     popupClose.addEventListener('keydown', onPopupCloseEnterPress);
     // Закрытие карточки по Esc
     document.addEventListener('keydown', onPopupEscPress);
   };
 
-  mapPins.addEventListener('click', pinClickHandler);
+  mapPins.addEventListener('click', onMapPinsClick);
 
   // Передвижение метки
   mainPin.addEventListener('mousedown', function (evt) {
@@ -272,8 +273,8 @@
     drawPins: drawPins,
     setMainPinAddress: setMainPinAddress,
     switchActiveForm: switchActiveForm,
-    mainPinClickHandler: mainPinClickHandler,
-    mainPinEnterPressHandler: mainPinClickHandler,
+    onMainPinClick: onMainPinClick,
+    onMainPinEnterPress: onMainPinEnterPress,
     mapActive: mapActive,
     removePins: removePins
   };
