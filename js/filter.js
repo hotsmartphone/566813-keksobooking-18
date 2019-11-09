@@ -2,17 +2,17 @@
 
 // Модуль FILTER.JS
 (function () {
+  var PRICE_CHOISES = {// Диапазоны значений из фильтра цены жилья
+    low: 10000,
+    high: 50000 // middle - то, что между low и high
+  };
+
   var housingTypeFilter = document.querySelector('#housing-type');
   var priceFilter = document.querySelector('#housing-price');
   var roomsNumbersFilter = document.querySelector('#housing-rooms');
   var guestsFilter = document.querySelector('#housing-guests');
 
   window.MAX_SHOWN_PINS = 5;
-
-  var PRICE_CHOISES = {// Диапазоны значений из фильтра цены жилья
-    low: 10000,
-    high: 50000 // middle - то, что между low и high
-  };
 
   var selectedFilters = {
     housingType: 'any',
@@ -43,7 +43,6 @@
           return adv.offer.type === selectedFilters.housingType;
         });
       }
-      return;
     };
 
     var filterPricePins = function () {
@@ -62,7 +61,6 @@
           return ((adv.offer.price >= PRICE_CHOISES.low) && (adv.offer.price < PRICE_CHOISES.high));
         });
       }
-      return;
     };
 
     var filterNumbersRooms = function () {
@@ -73,7 +71,6 @@
           return adv.offer.rooms.toString() === selectedFilters.rooms;
         });
       }
-      return;
     };
 
     var filterNumbersGuests = function () {
@@ -84,12 +81,11 @@
           return adv.offer.guests.toString() === selectedFilters.guests;
         });
       }
-      return;
     };
 
     var filterFeatures = function () { // Функция фильтрации удобств
       for (var key in selectedFilters.features) {
-        if (selectedFilters.features[key] === true) {
+        if (selectedFilters.features[key]) {
           filteredAdvs = filteredAdvs.filter(function (adv) {
             return adv.offer.features.includes(key);
           });
@@ -130,13 +126,14 @@
   });
 
   var addFeaturesFiltersListeners = function () { // Функция вешает обработчик событий на каждый из шести чекбоксов
-    var featuresInput = document.querySelectorAll('[id^=filter-]');
-    for (var i = 0; i < featuresInput.length; i++) {
-      featuresInput[i].addEventListener('change', function (evt) {
+    var featuresInputs = document.querySelectorAll('[id^=filter-]');
+
+    featuresInputs.forEach(function (it) {
+      it.addEventListener('change', function (evt) {
         selectedFilters.features[evt.target.value] = evt.target.checked;
         debouncedUpdateAdvs();
       });
-    }
+    });
   };
 
   addFeaturesFiltersListeners();

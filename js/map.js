@@ -2,18 +2,33 @@
 
 // МОДУЛЬ MAP.JS
 (function () {
+  // Размеры главного пина
+  var MAIN_PIN_WIDTH = 65;
+  var MAIN_PIN_HEIGHT = 65;
+  var MAIN_PIN_HEIGHT_POINT = 79;
+
+  var mapPins = document.querySelector('.map__pins');
+
+  // Значения, для определния границ перемещения метки
+  var MIN_HEIGHT_ADDRESS = 130;
+  var MAX_HEIGHT_ADDRESS = 630;
+  var MIN_HEIGHT_PIN_MOVE = MIN_HEIGHT_ADDRESS - MAIN_PIN_HEIGHT_POINT;
+  var MAX_HEIGHT_PIN_MOVE = MAX_HEIGHT_ADDRESS - MAIN_PIN_HEIGHT_POINT;
+  var MIN_WIDTH_PIN_MOVE = 0 - MAIN_PIN_WIDTH / 2;
+  var MAX_WIDTH_PIN_MOVE = mapPins.offsetWidth - MAIN_PIN_WIDTH / 2;
+
   var advsList = []; // Переменная, в которую записывается весь массив объявлений, полученных от сервера
   var activeAdvs = []; // Переменная с актвным массивом объявлений (после фильтрации и отсечения)
 
   // Отрисовываем пины
-  var mapPins = document.querySelector('.map__pins');
+
 
   var drawPins = function (advs) {
     var fragment = document.createDocumentFragment();
 
-    for (var i = 0; i < advs.length; i++) {
-      fragment.appendChild(window.pin.renderPin(advs[i], i));
-    }
+    advs.forEach(function (it) {
+      fragment.appendChild(window.pin.renderPin(it, advs.indexOf(it)));
+    });
     return mapPins.appendChild(fragment);
   };
 
@@ -28,9 +43,6 @@
   };
 
   // Вычисляем адресс главного пина
-  var MAIN_PIN_WIDTH = 65;
-  var MAIN_PIN_HEIGHT = 65;
-  var MAIN_PIN_HEIGHT_POINT = 79;
   var pinAddress = document.querySelector('#address');
 
   var getMainPinAddress = function (isActiveBoolean) {
@@ -43,7 +55,6 @@
       mainPinAdress.y = Math.round(mainPin.getBoundingClientRect().top - mapPins.getBoundingClientRect().top + MAIN_PIN_HEIGHT / 2);
     }
     return mainPinAdress;
-    // ..console.log(mainPinAdress);
   };
 
   var setMainPinAddress = function (isActiveBoolean) {
@@ -57,20 +68,20 @@
   var advForm = document.querySelector('.ad-form');
 
   // Функция переключения режима полей форм (активный/неактивный)
-  function switchActiveForm(boolean) {
+  var switchActiveForm = function (boolean) {
     var formInputsSelectors = document.querySelectorAll('.ad-form fieldset, .map__filters fieldset, .map__filters select');
-    if (boolean === true) {
-      for (var i = 0; i < formInputsSelectors.length; i++) {
-        formInputsSelectors[i].disabled = false;
-      }
+    if (boolean) {
+      formInputsSelectors.forEach(function (it) {
+        it.disabled = false;
+      });
       advForm.classList.remove('ad-form--disabled');
     } else {
-      for (var j = 0; j < formInputsSelectors.length; j++) {
-        formInputsSelectors[j].disabled = true;
-      }
+      formInputsSelectors.forEach(function (it) {
+        it.disabled = true;
+      });
       advForm.classList.add('ad-form--disabled');
     }
-  }
+  };
 
   switchActiveForm(false);
 
@@ -186,13 +197,9 @@
   // Функция открытия карточки с обработчиками событий
   var openPopup = function (target) {
     checkAndClosePopup();
-
     activePin = target;
-
     drawCard(window.map.activeAdvs[target.id]);
-
     activePin.classList.add('map__pin--active');
-
     popupClose = document.querySelector('.popup__close');
 
     // Обработчик событий на закрытие окна при клике на крестик
@@ -226,13 +233,6 @@
         x: moveEvt.clientX,
         y: moveEvt.clientY
       };
-      var MIN_HEIGHT_ADDRESS = 130;
-      var MAX_HEIGHT_ADDRESS = 630;
-      var MIN_HEIGHT_PIN_MOVE = MIN_HEIGHT_ADDRESS - MAIN_PIN_HEIGHT_POINT;
-      var MAX_HEIGHT_PIN_MOVE = MAX_HEIGHT_ADDRESS - MAIN_PIN_HEIGHT_POINT;
-      var MIN_WIDTH_PIN_MOVE = 0 - MAIN_PIN_WIDTH / 2;
-      var MAX_WIDTH_PIN_MOVE = mapPins.offsetWidth - MAIN_PIN_WIDTH / 2;
-
 
       mainPin.style.left = Math.max(MIN_WIDTH_PIN_MOVE, Math.min(mainPin.offsetLeft - shift.x, MAX_WIDTH_PIN_MOVE)) + 'px';
       mainPin.style.top = Math.max(MIN_HEIGHT_PIN_MOVE, Math.min(mainPin.offsetTop - shift.y, MAX_HEIGHT_PIN_MOVE)) + 'px';
@@ -255,11 +255,11 @@
   // Удаляем все пины, кроме главного
   var removePins = function () {
     var pins = document.querySelectorAll('.map__pin');
-    for (var i = 0; i < pins.length; i++) {
-      if (pins[i] !== mainPin) {
-        pins[i].remove();
+    pins.forEach(function (it) {
+      if (it !== mainPin) {
+        it.remove();
       }
-    }
+    });
   };
 
   window.map = {

@@ -2,6 +2,16 @@
 
 // МОДУЛЬ FORM.JS
 (function () {
+  var MIN_LENGTH_TITLE = 30;
+  var MAX_LENGTH_TITLE = 100;
+  var MAX_PRICE = 1000000;
+  var MIN_PRICE_FOR_TYPE = {
+    palace: 10000,
+    flat: 1000,
+    house: 5000,
+    bungalo: 0
+  };
+
   window.map.setMainPinAddress(false);
   // Накладываем валиадацию на зависимость количества комнат от количества гостей и наоборот
   // Объект, в котором ключ - количество комнат, а значение - массив доступного количества места для такого количества комнат
@@ -17,9 +27,10 @@
 
   // Делаю неактивными все пункты количества мест
   var setNumbersPlacesOption = function (targetValue) {
-    for (var i = 0; i < capacityRoomOptions.length; i++) {
-      capacityRoomOptions[i].disabled = true;
-    }
+
+    capacityRoomOptions.forEach(function (it) {
+      it.disabled = true;
+    });
 
     for (var k = 0; k < Object.keys(capacityRoomsGuests).length; k++) { // Цикл идет по каждому ключу, сравнивая отловленное количество комнат с ключами объекта
       if (targetValue === String(Object.keys(capacityRoomsGuests)[k])) {
@@ -36,19 +47,18 @@
   };
 
   // Функция, которая срабатывает при смене количества комнат. Ограничивает список мест до разрешенного для даннного количества комнат
-  function onRoomsNumbersChange(evt) {
+  var onRoomsNumbersChange = function (evt) {
     var targetValue = evt.target.value;
     setNumbersPlacesOption(targetValue);
-  }
+  };
 
   roomNumber.addEventListener('change', onRoomsNumbersChange);
 
   // Продолажем валидировать
-
   // Валидация заголовка
   var titleAdv = document.querySelector('#title');
-  titleAdv.setAttribute('minlength', 30);
-  titleAdv.setAttribute('maxlength', 100);
+  titleAdv.setAttribute('minlength', MIN_LENGTH_TITLE);
+  titleAdv.setAttribute('maxlength', MAX_LENGTH_TITLE);
   titleAdv.required = true;
 
   var onTitleInput = function (evt) {
@@ -59,16 +69,10 @@
   // Валидация цены
   var priceAdv = document.querySelector('#price');
   priceAdv.required = true;
-  priceAdv.setAttribute('max', 1000000);
+  priceAdv.setAttribute('max', MAX_PRICE);
 
   // Валидация типа жилья - минимальная цена
   var housingTypeAdv = document.querySelector('#type');
-  var priceForType = {
-    palace: 10000,
-    flat: 1000,
-    house: 5000,
-    bungalo: 0
-  };
 
   // Функция в зависимости от типа жилья устанавливает минимальное значение цены и placeholder
   var onPriceChange = function (evt) {
@@ -77,12 +81,12 @@
   };
 
   var setMinPricePlaceholder = function (typeHusingValue) {
-    for (var i = 0; i < Object.keys(priceForType).length; i++) {
-      if (Object.keys(priceForType)[i] === typeHusingValue) {
-        priceAdv.setAttribute('min', priceForType[Object.keys(priceForType)[i]]);
-        priceAdv.placeholder = priceForType[Object.keys(priceForType)[i]];
+    Object.keys(MIN_PRICE_FOR_TYPE).forEach(function (it) {
+      if (it === typeHusingValue) {
+        priceAdv.setAttribute('min', MIN_PRICE_FOR_TYPE[it]);
+        priceAdv.placeholder = MIN_PRICE_FOR_TYPE[it];
       }
-    }
+    });
   };
 
   housingTypeAdv.addEventListener('change', onPriceChange);
@@ -97,15 +101,16 @@
 
   var onCheckinChange = function (evt) {
     var target = evt.target;
-    if (target === checkin) {
-      checkout.value = target.value;
-    } else {
-      checkin.value = target.value;
-    }
+    checkout.value = target.value;
+  };
+
+  var onCheckoutChange = function (evt) {
+    var target = evt.target;
+    checkin.value = target.value;
   };
 
   checkin.addEventListener('change', onCheckinChange);
-  checkout.addEventListener('change', onCheckinChange);
+  checkout.addEventListener('change', onCheckoutChange);
 
   // Функция сброса превью аватарки и фото жилья
   var resetPhotos = function () {
@@ -124,8 +129,10 @@
   // Отправка данных формы при нажатии на кнопку "Опубликовать"
   // Фнукция возврата в неактивное состояние
   var returnInactiveState = function () {
+    window.map.checkAndClosePopup(); // закроем карточку активного объявления
     // очистите заполненные поля
-    window.map.advForm.reset(); // reset формы
+    window.map.advForm.reset(); // reset формы заполнения объеявления
+    document.querySelector('.map__filters').reset(); // reset фильтров
     resetPhotos(); // Очищение превью картинок в форме
     titleAdv.setAttribute('value', ''); // нулевое значение в input, так как reset здесь не помогает
     window.map.switchActiveForm(false); // дизейбл полей формы объявления и фильтров
@@ -140,25 +147,25 @@
 
   // Функция обработки успешной загрузки данных формы на сервер
   var onSuccessUploadHandler = function () {
-    returnInactiveState();
-
     var successTemplate = document.querySelector('#success').content;
     var cloneSuccess = successTemplate.cloneNode(true);
     document.querySelector('main').append(cloneSuccess);
 
-    var onSuccessOverlayClick = function () {
-      document.querySelector('.success').remove();
-      document.removeEventListener('keydown', onSuccessOverlayEscPress);
-      document.removeEventListener('click', onSuccessOverlayClick);
-    };
     var onSuccessOverlayEscPress = function (evt) {
       if (evt.keyCode === window.util.ESC_KEYCODE) {
         onSuccessOverlayClick();
       }
     };
+    var onSuccessOverlayClick = function () {
+      document.querySelector('.success').remove();
+      document.removeEventListener('keydown', onSuccessOverlayEscPress);
+      document.removeEventListener('click', onSuccessOverlayClick);
+      returnInactiveState();
+    };
     document.addEventListener('keydown', onSuccessOverlayEscPress);
     document.addEventListener('click', onSuccessOverlayClick);
   };
+
 
   // Функция обработки ошибок при загрузке объявлений с сервера
   var errorUploadHandler = function (errorMessage) {
@@ -226,9 +233,9 @@
 
   var featuresInputs = document.querySelectorAll('input[name=features]');
 
-  for (var i = 0; i < featuresInputs.length; i++) {
-    featuresInputs[i].addEventListener('keydown', onFeatureInputEnterPress);
-  }
+  featuresInputs.forEach(function (it) {
+    it.addEventListener('keydown', onFeatureInputEnterPress);
+  });
 
   window.form = {
     setNumbersPlacesOption: setNumbersPlacesOption,

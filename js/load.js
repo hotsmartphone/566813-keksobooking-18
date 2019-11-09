@@ -3,7 +3,7 @@
 // МОДУЛЬ lOAD.JS
 (function () {
 
-  var load = function (method, URL, onSuccess, onError, data) {
+  window.load = function (method, URL, onSuccess, onError, data) {
     var xhr = new XMLHttpRequest();
 
     xhr.responseType = 'json';
@@ -32,6 +32,4 @@
       xhr.send();
     }
   };
-
-  window.load = load;
 })();

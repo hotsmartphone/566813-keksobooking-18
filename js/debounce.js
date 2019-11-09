@@ -1,7 +1,6 @@
 'use strict';
 
 // Модуль DEBOUNCE.JS
-
 (function () {
   var DEBOUNCE_INTERVAL = 500; // ms
 
