@@ -27,21 +27,21 @@
     var cardPhoto = cardElement.querySelector('.popup__photo');
     cardElement.querySelector('.popup__photo').remove();
 
-    for (var i = 0; i < adv.offer.photos.length; i++) {
-      cardPhoto.src = adv.offer.photos[i];
+    adv.offer.photos.forEach(function (it) {
+      cardPhoto.src = it;
       cardPhotos.append(cardPhoto.cloneNode(true));
-    }
+    });
 
     // Вставляем удобства в карточку
     var cardFeatures = cardElement.querySelector('.popup__features');
     var cardFeature = cardElement.querySelector('.popup__feature');
     cardFeatures.innerHTML = '';
 
-    for (var n = 0; n < adv.offer.features.length; n++) {
+    adv.offer.features.forEach(function (it) {
       cardFeature.className = '';
-      cardFeature.classList.add('popup__feature', 'popup__feature--' + adv.offer.features[n]);
+      cardFeature.classList.add('popup__feature', 'popup__feature--' + it);
       cardFeatures.appendChild(cardFeature.cloneNode(true));
-    }
+    });
 
     return cardElement;
   };
