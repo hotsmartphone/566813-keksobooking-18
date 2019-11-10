@@ -10,9 +10,10 @@
   var fileChooserHousingPhoto = document.querySelector('#images');
   var previewHousingPhoto = document.querySelector('.ad-form__photo');
 
+  var acceptFileTypes = '.' + FILE_TYPES.join(',.');
+
   [fileChooserAvatar, fileChooserHousingPhoto].forEach(function (it) { // Установим разрешенные форматы, чтобы пользователь не мог загрузить иные файлы
-    it.accept = '.' + FILE_TYPES.join(',.');
-    // ..it.accept = '.gif,.jpg,.jpeg,.png';
+    it.accept = acceptFileTypes;
   });
 
 

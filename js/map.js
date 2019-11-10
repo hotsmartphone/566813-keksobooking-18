@@ -27,7 +27,7 @@
     var fragment = document.createDocumentFragment();
 
     advs.forEach(function (it) {
-      fragment.appendChild(window.pin.renderPin(it, advs.indexOf(it)));
+      fragment.appendChild(window.renderPin(it, advs.indexOf(it)));
     });
     return mapPins.appendChild(fragment);
   };
@@ -37,7 +37,7 @@
     var mapFilters = document.querySelector('.map__filters-container'); // Перед данным разделом добавляются карточки
     var fragment = document.createDocumentFragment();
 
-    fragment.appendChild(window.card.renderCard(adv));
+    fragment.appendChild(window.renderCard(adv));
 
     return mapFilters.before(fragment);
   };
@@ -63,7 +63,7 @@
   };
 
   // Делаем карту активной
-  var mapActive = document.querySelector('.map');
+  var pinsArea = document.querySelector('.map');
   var mainPin = document.querySelector('.map__pin--main');
   var advForm = document.querySelector('.ad-form');
 
@@ -86,17 +86,17 @@
   switchActiveForm(false);
 
   // Функция обработки объявлений при их успешной загрузке с сервера
-  var successDownloadHandler = function (advs) {
+  var onGetAdvsRequestSuccess = function (advs) {
     window.map.advsList = advs.slice().filter(function (it) { // Фильтруем полученные данные - убираем объявления, у которых нет offer
       return it.offer;
     });
     window.map.activeAdvs = window.map.advsList.slice(0, window.MAX_SHOWN_PINS);
     drawPins(window.map.activeAdvs);
-    mapActive.classList.remove('map--faded');
+    pinsArea.classList.remove('map--faded');
   };
 
   // Функция обработки ошибок при загрузке объявлений с сервера
-  var errorDownloadHandler = function (errorMessage) {
+  var onGetAdvsRequestError = function (errorMessage) {
     var errorTemplate = document.querySelector('#error').content;
     var cloneError = errorTemplate.cloneNode(true);
     var errorButton = cloneError.querySelector('.error__button');
@@ -124,7 +124,7 @@
 
   // Фнукция включения активного состояния
   var onMainPinClick = function () {
-    window.load('GET', 'https://js.dump.academy/keksobooking/data', successDownloadHandler, errorDownloadHandler);
+    window.load('GET', 'https://js.dump.academy/keksobooking/data', onGetAdvsRequestSuccess, onGetAdvsRequestError);
     switchActiveForm(true);
     setMainPinAddress(true);
     window.form.setNumbersPlacesOption(window.form.roomNumber.querySelector('option:checked').value); // Запускаем фнукцию установки разрешенного количества мест сразу, чтобы пользователь случайно не отправил невалидные данные
@@ -266,7 +266,6 @@
     advsList: advsList,
     activeAdvs: activeAdvs,
     checkAndClosePopup: checkAndClosePopup,
-    mapPins: mapPins,
     mainPin: mainPin,
     pinAddress: pinAddress,
     advForm: advForm,
@@ -275,7 +274,7 @@
     switchActiveForm: switchActiveForm,
     onMainPinClick: onMainPinClick,
     onMainPinEnterPress: onMainPinEnterPress,
-    mapActive: mapActive,
+    pinsArea: pinsArea,
     removePins: removePins
   };
 })();

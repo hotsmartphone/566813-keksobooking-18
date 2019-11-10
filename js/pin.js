@@ -5,7 +5,7 @@
   var PIN_WIDTH = 50;
   var PIN_HEIGHT = 70;
   // Генерируем пин
-  var renderPin = function (adv, indexNumber) {
+  window.renderPin = function (adv, indexNumber) {
     var pinTemplate = document.querySelector('#pin').content.querySelector('.map__pin');
     var pinElement = pinTemplate.cloneNode(true);
 
@@ -17,5 +17,4 @@
 
     return pinElement;
   };
-  window.pin.renderPin = renderPin;
 })();

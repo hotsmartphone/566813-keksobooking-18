@@ -2,6 +2,8 @@
 
 // МОДУЛЬ lOAD.JS
 (function () {
+  var SUCCESS_CODE = 200;
+  var TIMEOUT = 10000; // 10сек
 
   window.load = function (method, URL, onSuccess, onError, data) {
     var xhr = new XMLHttpRequest();
@@ -9,7 +11,7 @@
     xhr.responseType = 'json';
 
     xhr.addEventListener('load', function () {
-      if (xhr.status === 200) {
+      if (xhr.status === SUCCESS_CODE) {
         onSuccess(xhr.response);
       } else {
         onError('Статус ответа: ' + xhr.status + ' ' + xhr.statusText);
@@ -22,7 +24,7 @@
       onError('Запрос не успел выполниться за ' + xhr.timeout + 'мс');
     });
 
-    xhr.timeout = 10000; // 10сек
+    xhr.timeout = TIMEOUT;
 
     xhr.open(method, URL);
 

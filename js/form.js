@@ -5,11 +5,11 @@
   var MIN_LENGTH_TITLE = 30;
   var MAX_LENGTH_TITLE = 100;
   var MAX_PRICE = 1000000;
-  var MIN_PRICE_FOR_TYPE = {
-    palace: 10000,
-    flat: 1000,
-    house: 5000,
-    bungalo: 0
+  var HousingTypePrice = {
+    PALACE: 10000,
+    FLAT: 1000,
+    HOUSE: 5000,
+    BUNGALO: 0
   };
 
   window.map.setMainPinAddress(false);
@@ -80,11 +80,11 @@
     setMinPricePlaceholder(targetValue);
   };
 
-  var setMinPricePlaceholder = function (typeHusingValue) {
-    Object.keys(MIN_PRICE_FOR_TYPE).forEach(function (it) {
-      if (it === typeHusingValue) {
-        priceAdv.setAttribute('min', MIN_PRICE_FOR_TYPE[it]);
-        priceAdv.placeholder = MIN_PRICE_FOR_TYPE[it];
+  var setMinPricePlaceholder = function (typeHousingValue) {
+    Object.keys(HousingTypePrice).forEach(function (it) {
+      if (it.toLowerCase() === typeHousingValue) {
+        priceAdv.setAttribute('min', HousingTypePrice[it]);
+        priceAdv.placeholder = HousingTypePrice[it];
       }
     });
   };
@@ -137,7 +137,7 @@
     titleAdv.setAttribute('value', ''); // нулевое значение в input, так как reset здесь не помогает
     window.map.switchActiveForm(false); // дизейбл полей формы объявления и фильтров
     window.map.removePins();
-    window.map.mapActive.classList.add('map--faded'); // оверлей на карту
+    window.map.pinsArea.classList.add('map--faded'); // оверлей на карту
     window.map.mainPin.style = 'left: 570px; top: 375px'; // возвращаю пин в центр
     window.map.setMainPinAddress(false); // заполнение координат главного пина
 
@@ -146,7 +146,7 @@
   };
 
   // Функция обработки успешной загрузки данных формы на сервер
-  var onSuccessUploadHandler = function () {
+  var onSubmitFormRequestSuccess = function () {
     var successTemplate = document.querySelector('#success').content;
     var cloneSuccess = successTemplate.cloneNode(true);
     document.querySelector('main').append(cloneSuccess);
@@ -168,7 +168,7 @@
 
 
   // Функция обработки ошибок при загрузке объявлений с сервера
-  var errorUploadHandler = function (errorMessage) {
+  var onSubmitFormRequestError = function (errorMessage) {
     var errorTemplate = document.querySelector('#error').content;
     var cloneError = errorTemplate.cloneNode(true);
     var errorButton = cloneError.querySelector('.error__button');
@@ -205,7 +205,7 @@
   // Обработчик на submit формы
   window.map.advForm.addEventListener('submit', function (evt) {
     evt.preventDefault();
-    window.load('POST', 'https://js.dump.academy/keksobooking', onSuccessUploadHandler, errorUploadHandler, new FormData(window.map.advForm));
+    window.load('POST', 'https://js.dump.academy/keksobooking', onSubmitFormRequestSuccess, onSubmitFormRequestError, new FormData(window.map.advForm));
   });
 
   // Обработчики на кнопку сброса формы
