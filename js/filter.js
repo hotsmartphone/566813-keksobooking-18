@@ -2,9 +2,9 @@
 
 // Модуль FILTER.JS
 (function () {
-  var PRICE_CHOISES = {// Диапазоны значений из фильтра цены жилья
-    low: 10000,
-    high: 50000 // middle - то, что между low и high
+  var PriceLevel = {// Диапазоны значений из фильтра цены жилья
+    LOW: 10000,
+    HIGH: 50000 // middle - то, что между low и high
   };
 
   var housingTypeFilter = document.querySelector('#housing-type');
@@ -50,15 +50,15 @@
         return;
       } else if (selectedFilters.price === 'low') {
         filteredAdvs = filteredAdvs.filter(function (adv) {
-          return adv.offer.price < PRICE_CHOISES.low;
+          return adv.offer.price < PriceLevel.LOW;
         });
       } else if (selectedFilters.price === 'high') {
         filteredAdvs = filteredAdvs.filter(function (adv) {
-          return adv.offer.price >= PRICE_CHOISES.high;
+          return adv.offer.price >= PriceLevel.HIGH;
         });
       } else {
         filteredAdvs = filteredAdvs.filter(function (adv) {
-          return ((adv.offer.price >= PRICE_CHOISES.low) && (adv.offer.price < PRICE_CHOISES.high));
+          return ((adv.offer.price >= PriceLevel.LOW) && (adv.offer.price < PriceLevel.HIGH));
         });
       }
     };
